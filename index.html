@@ -838,14 +838,19 @@
             } catch(err) { alert("Proceso cancelado."); }
         });
 
-        document.getElementById("btn-actualizar-seccion-dash").addEventListener("click", async () => {
+      document.getElementById("btn-actualizar-seccion-dash").addEventListener("click", async () => {
             const boxes = document.querySelectorAll('.chk-renov-sec:checked');
             if(boxes.length === 0) return alert("Selecciona al menos una materia para inscribirte.");
             const nuevasSecciones = Array.from(boxes).map(cb => cb.value);
             
+            // Validar si realmente agregó una materia nueva
+            const misSeccionesActuales = estudianteSesion.seccionesIds || [];
+            const agregadas = nuevasSecciones.filter(x => !misSeccionesActuales.includes(x));
+            if (agregadas.length === 0) return alert("No has seleccionado ninguna materia nueva. Tus inscripciones actuales ya están bloqueadas y aseguradas.");
+
             await updateDoc(doc(db, "estudiantes", estudianteSesion.id), { seccionesIds: nuevasSecciones, aprobado: false });
             estudianteSesion.seccionesIds = nuevasSecciones; estudianteSesion.aprobado = false;
-            alert("✅ Solicitud de inscripción enviada. Tu cuenta entra en revisión.");
+            alert("✅ Solicitud de inscripción a nueva materia enviada. Tu cuenta entra en revisión para la nueva carga.");
             mostrarTableroEstudiante();
         });
 
@@ -884,13 +889,28 @@
             sessionStorage.removeItem("token_sesion_estudiante"); estudianteSesion = null; document.getElementById("vista-estudiante-tablero").classList.add("hidden"); document.getElementById("vista-estudiante-portal").classList.remove("hidden");
         });
 
-        function mostrarTableroEstudiante() {
+      function mostrarTableroEstudiante() {
             document.getElementById("vista-estudiante-portal").classList.add("hidden"); document.getElementById("vista-estudiante-tablero").classList.remove("hidden");
             document.getElementById("perfil-estudiante-bienvenida").innerText = `Hola, ${estudianteSesion.nombre} ${estudianteSesion.apellido}`;
             document.getElementById("perfil-estudiante-seccion").innerText = `C.I: ${estudianteSesion.cedula}`;
             if(estudianteSesion.nombre && estudianteSesion.apellido){
                  document.getElementById("perfil-estudiante-iniciales").innerText = `${estudianteSesion.nombre.charAt(0)}${estudianteSesion.apellido.charAt(0)}`.toUpperCase();
             }
+            
+            // --- BLOQUEO DE SECCIONES PREVIAS ---
+            const misSecciones = estudianteSesion.seccionesIds || [];
+            document.querySelectorAll('.chk-renov-sec').forEach(cb => {
+                if (misSecciones.includes(cb.value)) {
+                    cb.checked = true;
+                    cb.disabled = true; // Impide que el alumno quite la marca
+                    cb.parentElement.classList.add("opacity-50", "cursor-not-allowed");
+                } else {
+                    cb.checked = false;
+                    cb.disabled = false;
+                    cb.parentElement.classList.remove("opacity-50", "cursor-not-allowed");
+                }
+            });
+            // ------------------------------------
             
             if (!estudianteSesion.terminosAceptados) document.getElementById("modal-aceptar-terminos").classList.remove("hidden");
             if (!estudianteSesion.passkeyId && window.PublicKeyCredential) { document.getElementById("box-vincular-huella").classList.remove("hidden"); document.getElementById("box-vincular-huella").classList.add("flex"); } 
