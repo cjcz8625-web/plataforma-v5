@@ -461,7 +461,6 @@
                         <div id="lista-preguntas-creadas" class="text-xs space-y-3 pt-2"></div>
                     </div>
 
-                    <!-- AQUÍ ESTÁ EL BLOQUE FALTANTE RESTAURADO -->
                     <div id="tc-alumnos" class="hidden space-y-5">
                         <div class="p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
                             <h3 class="font-semibold text-blue-900 text-sm mb-1">Validación Masiva (Excel)</h3>
@@ -800,7 +799,13 @@
             const passHash = await cifrarClave(pass);
             if (estData.passwordHash !== passHash && estData.password !== pass) return alert("Contraseña incorrecta.");
             
-            if(estData.seccionId && !estData.seccionesIds) { estData.seccionesIds = [estData.seccionId]; await updateDoc(doc(db, "estudiantes", estDocId), {seccionesIds: estData.seccionesIds, aprobado: true}); estData.aprobado = true; }
+            // --- PARCHE DE MIGRACIÓN V4 A V5 ---
+            if (estData.seccionId && (!estData.seccionesIds || estData.seccionesIds.length === 0)) { 
+                estData.seccionesIds = [estData.seccionId]; 
+                await updateDoc(doc(db, "estudiantes", estDocId), { seccionesIds: estData.seccionesIds }); 
+            }
+            // ------------------------------------
+            
             iniciarSesionEstudianteExitoso(estDocId, estData);
         });
 
@@ -811,7 +816,12 @@
             if (!estData) return alert("Cédula no registrada.");
             if (!estData.passkeyId) return alert("No tienes huella registrada. Usa contraseña.");
             
-            if(estData.seccionId && !estData.seccionesIds) { estData.seccionesIds = [estData.seccionId]; await updateDoc(doc(db, "estudiantes", estDocId), {seccionesIds: estData.seccionesIds, aprobado: true}); estData.aprobado = true; }
+            // --- PARCHE DE MIGRACIÓN V4 A V5 ---
+            if (estData.seccionId && (!estData.seccionesIds || estData.seccionesIds.length === 0)) { 
+                estData.seccionesIds = [estData.seccionId]; 
+                await updateDoc(doc(db, "estudiantes", estDocId), { seccionesIds: estData.seccionesIds }); 
+            }
+            // ------------------------------------
 
             try {
                 const publicKeyRequestParams = { challenge: crypto.getRandomValues(new Uint8Array(32)), allowCredentials: [{ id: base64urlToBuffer(estData.passkeyId), type: 'public-key', transports: ['internal'] }], userVerification: "required", timeout: 60000 };
