@@ -100,7 +100,7 @@
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Contraseña de Respaldo</label>
                     <div class="relative">
-                        <input type="password" id="reg-password" placeholder="Mínimo 4 caracteres" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm pr-10 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition" required>
+                        <input type="password" id="reg-password" placeholder="Ej: Clav3* (4 a 12 caracteres)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm pr-10 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition" required>
                         <button type="button" class="toggle-password absolute right-2 top-2 text-slate-400 hover:text-slate-600 text-lg" data-target="reg-password">👁️</button>
                     </div>
                 </div>
@@ -129,7 +129,7 @@
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Nueva Contraseña</label>
                     <div class="relative">
-                        <input type="password" id="reset-pass-1" placeholder="Mínimo 4 caracteres" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm pr-10 focus:ring-2 focus:ring-blue-500 outline-none transition" required>
+                        <input type="password" id="reset-pass-1" placeholder="Ej: Clav3* (4 a 12 caracteres)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm pr-10 focus:ring-2 focus:ring-blue-500 outline-none transition" required>
                         <button type="button" class="toggle-password absolute right-2 top-2 text-slate-400 hover:text-slate-600 text-lg" data-target="reset-pass-1">👁️</button>
                     </div>
                 </div>
@@ -735,7 +735,13 @@
             const pass2 = document.getElementById("reset-pass-2").value.trim();
 
             if(pass1 !== pass2) return alert("Las contraseñas no coinciden.");
-            if(pass1.length < 4) return alert("La contraseña debe tener al menos 4 caracteres.");
+            
+            // --- NUEVO FILTRO DE COMPLEJIDAD (4-12 Caracteres) ---
+            const regexClave = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{4,12}$/;
+            if(!regexClave.test(pass1)) {
+                return alert("⚠️ Seguridad: La nueva contraseña debe tener entre 4 y 12 caracteres, e incluir al menos una MAYÚSCULA, una minúscula, un número y un símbolo especial (ej. * o $).");
+            }
+            // -----------------------------------------------------
 
             const { estData, estDocId } = await buscarEstudianteRobusto(cedula);
             if (!estData) return alert("Cédula no registrada en el sistema.");
@@ -758,7 +764,15 @@
             const pass = document.getElementById("reg-password").value.trim();
             const seccionesSeleccionadas = Array.from(document.querySelectorAll('.chk-reg-sec:checked')).map(cb => cb.value);
             
-            if (!nom || !ape || !ced || pass.length < 4) { return alert("Rellena todos los campos de texto."); }
+            if (!nom || !ape || !ced || !pass) { return alert("Rellena todos los campos de texto."); }
+            
+            // --- NUEVO FILTRO DE COMPLEJIDAD (4-12 Caracteres) ---
+            const regexClave = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{4,12}$/;
+            if(!regexClave.test(pass)) {
+                return alert("⚠️ Seguridad: La contraseña debe tener entre 4 y 12 caracteres, e incluir al menos una MAYÚSCULA, una minúscula, un número y un símbolo especial (ej. * o $).");
+            }
+            // -----------------------------------------------------
+
             if (seccionesSeleccionadas.length === 0) { return alert("Debes seleccionar al menos una sección para inscribirte."); }
             if (!document.getElementById("reg-terminos").checked) { return alert("Debes aceptar los términos."); }
             
@@ -791,13 +805,43 @@
         document.getElementById("btn-completar-registro-huella").addEventListener("click", () => procesarRegistroEstudiante(true));
         document.getElementById("form-registro-estudiante").addEventListener("submit", (e) => { e.preventDefault(); procesarRegistroEstudiante(false); });
 
+        // --- SISTEMA DE INICIO DE SESIÓN CON ANTI-FUERZA BRUTA (3 INTENTOS) ---
         document.getElementById("form-login-estudiante").addEventListener("submit", async (e) => {
-            e.preventDefault(); const cedIngresada = document.getElementById("login-cedula").value; const pass = document.getElementById("login-password").value.trim();
+            e.preventDefault(); 
+            const cedIngresada = document.getElementById("login-cedula").value; 
+            const pass = document.getElementById("login-password").value.trim();
+            
             if (!cedIngresada || !pass) return alert("Ingresa tu cédula y contraseña.");
+            
             const { estData, estDocId } = await buscarEstudianteRobusto(cedIngresada);
             if (!estData) return alert("Cédula no registrada en el sistema.");
+
+            // 1. VERIFICAR SI LA CUENTA YA ESTÁ BLOQUEADA
+            if (estData.bloqueoSeguridad === true) {
+                return alert("⛔ SEGURIDAD: Esta cuenta ha sido bloqueada por múltiples intentos fallidos. Solicite el desbloqueo al docente.");
+            }
+
             const passHash = await cifrarClave(pass);
-            if (estData.passwordHash !== passHash && estData.password !== pass) return alert("Contraseña incorrecta.");
+            
+            // 2. CONTRASEÑA INCORRECTA (SUMAR INTENTOS)
+            if (estData.passwordHash !== passHash && estData.password !== pass) {
+                let intentos = (estData.intentosFallidos || 0) + 1;
+                let actualizacion = { intentosFallidos: intentos };
+                
+                if (intentos >= 3) {
+                    actualizacion.bloqueoSeguridad = true;
+                    await updateDoc(doc(db, "estudiantes", estDocId), actualizacion);
+                    return alert("⛔ SEGURIDAD: Ha fallado 3 veces. Su cuenta ha sido bloqueada permanentemente por protección.");
+                } else {
+                    await updateDoc(doc(db, "estudiantes", estDocId), actualizacion);
+                    return alert(`Contraseña incorrecta. Le quedan ${3 - intentos} intento(s) antes del bloqueo.`);
+                }
+            }
+            
+            // 3. CONTRASEÑA CORRECTA (RESETEAR INTENTOS)
+            if (estData.intentosFallidos > 0) {
+                await updateDoc(doc(db, "estudiantes", estDocId), { intentosFallidos: 0 });
+            }
             
             // --- PARCHE DE MIGRACIÓN V4 A V5 ---
             if (estData.seccionId && (!estData.seccionesIds || estData.seccionesIds.length === 0)) { 
@@ -814,6 +858,7 @@
             if (!cedIngresada) return alert("Escribe tu cédula de identidad para buscar tu huella.");
             const { estData, estDocId } = await buscarEstudianteRobusto(cedIngresada);
             if (!estData) return alert("Cédula no registrada.");
+            if (estData.bloqueoSeguridad === true) return alert("⛔ SEGURIDAD: Esta cuenta ha sido bloqueada. Solicite el desbloqueo al docente.");
             if (!estData.passkeyId) return alert("No tienes huella registrada. Usa contraseña.");
             
             // --- PARCHE DE MIGRACIÓN V4 A V5 ---
@@ -1719,7 +1764,7 @@
                     ${e.aprobado ? '<span class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md text-[10px]">Validado</span>' : '<span class="text-red-700 bg-red-50 border border-red-200 px-2.5 py-1 rounded-md text-[10px]">En Revisión</span>'}
                 </td>
                 <td class="p-3 flex justify-center gap-1.5">
-                    <button onclick="window.permitirResetAlumno('${e.id}')" class="${e.resetClaveAutorizado ? 'bg-amber-100 text-amber-700 border-amber-300' : 'bg-white text-slate-400 border-slate-200 hover:bg-amber-50 hover:text-amber-600'} px-2 py-1 rounded-md border transition shadow-sm" title="Reset Clave">🔑</button>
+                    <button onclick="window.permitirResetAlumno('${e.id}')" class="${e.resetClaveAutorizado ? 'bg-amber-100 text-amber-700 border-amber-300' : 'bg-white text-slate-400 border-slate-200 hover:bg-amber-50 hover:text-amber-600'} px-2 py-1 rounded-md border transition shadow-sm" title="Reset Clave y Desbloquear">🔑</button>
                     <button onclick="window.toggleAprobacionAlumno('${e.id}', ${!e.aprobado})" class="${e.aprobado ? 'bg-white text-red-500 hover:bg-red-50 border-slate-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'} px-2 py-1 rounded-md border transition font-bold shadow-sm" title="${e.aprobado ? 'Revocar' : 'Aprobar'}">${e.aprobado ? '✗' : '✓'}</button>
                     <button onclick="window.editarDatosAlumnoModal('${e.id}')" class="bg-white hover:bg-blue-50 text-blue-600 px-2 py-1 rounded-md border border-slate-200 transition shadow-sm font-medium text-[11px]" title="Modificar">Editar</button>
                     <button onclick="window.forzarCierreSesionAlumno('${e.id}')" class="bg-white hover:bg-slate-100 text-slate-600 px-2 py-1 rounded-md border border-slate-200 transition shadow-sm font-medium text-[11px]" title="Liberar Equipo UUID">Desanclar</button>
@@ -1728,9 +1773,9 @@
         }
 
         window.permitirResetAlumno = async (id) => {
-            if(confirm("¿Habilitar los protocolos de recuperación de credencial para este usuario?")) {
-                await updateDoc(doc(db, "estudiantes", id), { resetClaveAutorizado: true });
-                alert("Protocolo activado.");
+            if(confirm("¿Habilitar los protocolos de recuperación de credencial y desbloqueo de cuenta para este usuario?")) {
+                await updateDoc(doc(db, "estudiantes", id), { resetClaveAutorizado: true, bloqueoSeguridad: false, intentosFallidos: 0 });
+                alert("Protocolo activado y cuenta desbloqueada.");
             }
         };
         
