@@ -990,18 +990,18 @@
             const corteGlobalActual = docentePerfil.corteActivo || 1;
             
             misMaterias.forEach(mat => {
-				// 1. Compatibilidad retroactiva: Acepta exámenes antiguos de la V4
-            const objsMateria = objetivos.filter(o =>
-                o.materiaId === mat.id &&
-                o.activo !== false &&
-                (!o.seccionesAutorizadas || o.seccionesAutorizadas.length === 0 || o.seccionesAutorizadas.some(sId => misSeccionesIds.includes(sId)))
-            );
+                // 1. Compatibilidad retroactiva: Acepta exámenes antiguos de la V4
+                const objsMateria = objetivos.filter(o =>
+                    o.materiaId === mat.id &&
+                    o.activo !== false &&
+                    (!o.seccionesAutorizadas || o.seccionesAutorizadas.length === 0 || o.seccionesAutorizadas.some(sId => misSeccionesIds.includes(sId)))
+                );
 
-            // 2. Extracción blindada: Busca la nota por el ID único del examen ignorando cambios de texto
-            const misNotasMat = calificaciones.filter(c =>
-                c.cedula === estudianteSesion.cedula &&
-                objsMateria.some(obj => obj.id === c.objetivoId)
-            );
+                // 2. Extracción blindada: Busca la nota por el ID único del examen ignorando cambios de texto
+                const misNotasMat = calificaciones.filter(c =>
+                    c.cedula === estudianteSesion.cedula &&
+                    objsMateria.some(obj => obj.id === c.objetivoId)
+                );
 
                 let c1AcumuladoPct = 0; let c2AcumuladoPct = 0;
                 let htmlCorte1 = ''; let htmlCorte2 = '';
@@ -1839,72 +1839,7 @@
         window.desbloquearReanudacionSesion = async (id) => { const sSnap = await getDoc(doc(db, "sesiones_examen", id)); if (sSnap.exists()) { await updateDoc(doc(db, "sesiones_examen", id), { estado: "reanudacion_permitida", strikes: 0, calificado: false }); const qC = query(collection(db, "calificaciones"), where("cedula", "==", sSnap.data().cedula), where("objetivoId", "==", sSnap.data().objetivoId)); (await getDocs(qC)).forEach(async (d) => await deleteDoc(d.ref)); alert("Reanudación autorizada."); } };
         window.eliminarSesionExamen = async (id) => { if(!confirm("⚠️ ¿Destruir el intento almacenado en la nube? El estudiante tendrá que empezar desde cero.")) return; const sSnap = await getDoc(doc(db, "sesiones_examen", id)); if (sSnap.exists()) { await deleteDoc(doc(db, "sesiones_examen", id)); const qC = query(collection(db, "calificaciones"), where("cedula", "==", sSnap.data().cedula), where("objetivoId", "==", sSnap.data().objetivoId)); (await getDocs(qC)).forEach(async (d) => await deleteDoc(d.ref)); alert("Base de datos limpia para el usuario."); } };
 
-        // 1. Inicialización de los filtros basada en la DATA REAL de Calificaciones
-        function actualizarFiltrosLibroCentral() {
-            const selectMat = document.getElementById("filtro-calif-mat");
-            if (!selectMat) return;
-            
-            // Conservamos la selección actual para que no brinque al actualizarse en tiempo real
-            const seleccionActualMat = selectMat.value; 
-            
-            // Extraemos materias únicas directamente del historial real de notas
-            const materiasUnicas = [...new Set(calificaciones.map(c => c.materiaNombre))].filter(Boolean);
-            
-            let opcionesMat = '<option value="TODAS">Todas las materias</option>';
-            materiasUnicas.forEach(mat => {
-                opcionesMat += `<option value="${mat}">${mat}</option>`;
-            });
-            selectMat.innerHTML = opcionesMat;
-            
-            // Restauramos la selección o la dejamos en "TODAS"
-            if (materiasUnicas.includes(seleccionActualMat)) {
-                selectMat.value = seleccionActualMat;
-            } else {
-                selectMat.value = "TODAS";
-            }
-
-            actualizarFiltroEvaluaciones(selectMat.value);
-        }
-
-        // 2. Actualiza el segundo filtro (Evaluaciones) dependiendo de la Materia seleccionada
-        function actualizarFiltroEvaluaciones(materiaNombreSeleccionada) {
-            const selectObj = document.getElementById("filtro-calif-obj");
-            if (!selectObj) return;
-
-            const seleccionActualObj = selectObj.value;
-            let notasFiltradas = calificaciones;
-
-            if (materiaNombreSeleccionada !== "TODAS") {
-                notasFiltradas = calificaciones.filter(c => c.materiaNombre === materiaNombreSeleccionada);
-            }
-
-            // Extraemos evaluaciones únicas (ID + Nombre) de la data filtrada
-            const evaluacionesUnicas = [];
-            const idsVistos = new Set();
-            
-            notasFiltradas.forEach(c => {
-                if (c.objetivoId && c.objetivoNombre && !idsVistos.has(c.objetivoId)) {
-                    idsVistos.add(c.objetivoId);
-                    evaluacionesUnicas.push({ id: c.objetivoId, nombre: c.objetivoNombre });
-                }
-            });
-
-            let opcionesObj = '<option value="TODOS">Todas las evaluaciones</option>';
-            evaluacionesUnicas.forEach(ev => {
-                opcionesObj += `<option value="${ev.id}">${ev.nombre}</option>`;
-            });
-            selectObj.innerHTML = opcionesObj;
-
-            // Restauramos la selección
-            if (idsVistos.has(seleccionActualObj)) {
-                selectObj.value = seleccionActualObj;
-            } else {
-                selectObj.value = "TODOS";
-            }
-        }
-
-        // 3. Listeners de los menús desplegables
-      // 1. Llenado dinámico de filtros basado en notas REALES
+        // 1. Llenado dinámico de filtros basado en notas REALES
         function actualizarFiltrosLibroCentral() {
             const selectMat = document.getElementById("filtro-calif-mat");
             if (!selectMat) return;
@@ -1971,49 +1906,6 @@
                 let c = filtradas[i];
                 let llave = `${c.cedula}_${c.objetivoId}`;
                 if (!llavesVistas.has(llave)) { llavesVistas.add(llave); notasUnicas.unshift(c); }
-            }
-
-            let h = `<table class="w-full text-left"><thead class="bg-slate-50"><tr class="border-b border-slate-200"><th class="p-3 font-semibold text-slate-600">ID Identidad</th><th class="p-3 font-semibold text-slate-600">Alumno Evaluado</th><th class="p-3 font-semibold text-slate-600">Instrumento</th><th class="p-3 font-semibold text-slate-600 text-center">Nota Adjudicada</th><th class="p-3 font-semibold text-slate-600 text-center">Modificación</th></tr></thead><tbody class="divide-y divide-slate-100">`;
-            const tabC = document.getElementById("tabla-calificaciones-final");
-            if(tabC) tabC.innerHTML = h + notasUnicas.map(c=>`<tr class="hover:bg-slate-50 transition">
-                <td class="p-3 font-mono text-slate-500">${c.cedula}</td>
-                <td class="p-3 font-medium text-slate-800">${c.estudiante}</td>
-                <td class="p-3 text-slate-600">${c.objetivoNombre}</td>
-                <td class="p-3 text-center"><span class="font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-1 rounded-md shadow-sm">${c.nota} <span class="font-medium text-[10px] text-blue-500">/ ${c.ponderacionTotal}</span></span></td>
-                <td class="p-3 text-center"><button onclick="window.eliminarNotaMasiva('${c.cedula}', '${c.objetivoId}')" class="text-red-500 hover:text-red-700 bg-white hover:bg-red-50 border border-slate-200 p-1.5 rounded-lg shadow-sm transition" title="Revocar acta de evaluación">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button></td></tr>`).join('') + `</tbody></table>`;
-        }
-        
-        document.getElementById("filtro-calif-obj").addEventListener("change", renderTablaCalificaciones);
-        
-        // 4. El motor de renderizado de la tabla
-        function renderTablaCalificaciones() {
-            const matFiltro = document.getElementById("filtro-calif-mat")?.value || "TODAS"; 
-            const objFiltro = document.getElementById("filtro-calif-obj")?.value || "TODOS";
-            
-            let filtradas = calificaciones;
-            
-            // Filtro 1: Por Nombre de Materia
-            if (matFiltro !== "TODAS") { 
-                filtradas = filtradas.filter(c => c.materiaNombre === matFiltro); 
-            }
-            
-            // Filtro 2: Por ID de Objetivo
-            if (objFiltro !== "TODOS") { 
-                filtradas = filtradas.filter(c => c.objetivoId === objFiltro); 
-            }
-            
-            // DEDUPLICACIÓN ESTRICTA DE NOTAS
-            let notasUnicas = [];
-            let llavesVistas = new Set();
-            for (let i = filtradas.length - 1; i >= 0; i--) {
-                let c = filtradas[i];
-                let llave = `${c.cedula}_${c.objetivoId}`;
-                if (!llavesVistas.has(llave)) {
-                    llavesVistas.add(llave);
-                    notasUnicas.unshift(c);
-                }
             }
 
             let h = `<table class="w-full text-left"><thead class="bg-slate-50"><tr class="border-b border-slate-200"><th class="p-3 font-semibold text-slate-600">ID Identidad</th><th class="p-3 font-semibold text-slate-600">Alumno Evaluado</th><th class="p-3 font-semibold text-slate-600">Instrumento</th><th class="p-3 font-semibold text-slate-600 text-center">Nota Adjudicada</th><th class="p-3 font-semibold text-slate-600 text-center">Modificación</th></tr></thead><tbody class="divide-y divide-slate-100">`;
