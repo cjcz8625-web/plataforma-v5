@@ -659,15 +659,6 @@
 		  appId: "1:556053984149:web:2ce59b15cbd3e28c63bc9c"
 		};
 
-        // ⚠️ CREDENCIALES DEL ENTORNO DE PRUEBAS
-       /* const firebaseConfig = {
-            apiKey: "AIzaSyCwRN1SRSldG1D6xgQCsnb0apfAk0hfXaw",
-            authDomain: "evaluaciones-v5-dev.firebaseapp.com",
-            projectId: "evaluaciones-v5-dev",
-            storageBucket: "evaluaciones-v5-dev.firebasestorage.app",
-            messagingSenderId: "796671945068",
-            appId: "1:796671945068:web:a226d4b79298fcf7e02b49"
-        };*/
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -712,7 +703,15 @@
         onSnapshot(collection(db, "secciones"), snap => { secciones = []; snap.forEach(d => secciones.push({ id: d.id, ...d.data() })); renderSeccionesSelectores(); renderTablaMateriasResumen(); });
         onSnapshot(collection(db, "estudiantes"), snap => { estudiantes = []; snap.forEach(d => estudiantes.push({ id: d.id, ...d.data() })); renderTablaAlumnos(); renderTablaAsistencia(); });
         onSnapshot(collection(db, "objetivos"), snap => { objetivos = []; snap.forEach(d => objetivos.push({ id: d.id, ...d.data() })); renderObjetivosSelectores(); if (estudianteSesion) renderTableroEstudianteLMS(); });
-        onSnapshot(collection(db, "calificaciones"), snap => { calificaciones = []; snap.forEach(d => calificaciones.push({ id: d.id, ...d.data() })); renderTablaCalificaciones(); if (estudianteSesion) renderTableroEstudianteLMS(); });
+        
+        onSnapshot(collection(db, "calificaciones"), snap => { 
+            calificaciones = []; 
+            snap.forEach(d => calificaciones.push({ id: d.id, ...d.data() })); 
+            actualizarFiltrosLibroCentral(); 
+            renderTablaCalificaciones(); 
+            if (estudianteSesion) renderTableroEstudianteLMS(); 
+        });
+
         onSnapshot(collection(db, "sesiones_examen"), snap => {
             sesionesActivas = []; snap.forEach(d => sesionesActivas.push({ id: d.id, ...d.data() }));
             renderTablaReanudacionDocente(); verificarSesionPendienteEstudiante(); 
@@ -1830,19 +1829,94 @@
         window.desbloquearReanudacionSesion = async (id) => { const sSnap = await getDoc(doc(db, "sesiones_examen", id)); if (sSnap.exists()) { await updateDoc(doc(db, "sesiones_examen", id), { estado: "reanudacion_permitida", strikes: 0, calificado: false }); const qC = query(collection(db, "calificaciones"), where("cedula", "==", sSnap.data().cedula), where("objetivoId", "==", sSnap.data().objetivoId)); (await getDocs(qC)).forEach(async (d) => await deleteDoc(d.ref)); alert("Reanudación autorizada."); } };
         window.eliminarSesionExamen = async (id) => { if(!confirm("⚠️ ¿Destruir el intento almacenado en la nube? El estudiante tendrá que empezar desde cero.")) return; const sSnap = await getDoc(doc(db, "sesiones_examen", id)); if (sSnap.exists()) { await deleteDoc(doc(db, "sesiones_examen", id)); const qC = query(collection(db, "calificaciones"), where("cedula", "==", sSnap.data().cedula), where("objetivoId", "==", sSnap.data().objetivoId)); (await getDocs(qC)).forEach(async (d) => await deleteDoc(d.ref)); alert("Base de datos limpia para el usuario."); } };
 
+        // 1. Inicialización de los filtros basada en la DATA REAL de Calificaciones
+        function actualizarFiltrosLibroCentral() {
+            const selectMat = document.getElementById("filtro-calif-mat");
+            if (!selectMat) return;
+            
+            // Conservamos la selección actual para que no brinque al actualizarse en tiempo real
+            const seleccionActualMat = selectMat.value; 
+            
+            // Extraemos materias únicas directamente del historial real de notas
+            const materiasUnicas = [...new Set(calificaciones.map(c => c.materiaNombre))].filter(Boolean);
+            
+            let opcionesMat = '<option value="TODAS">Todas las materias</option>';
+            materiasUnicas.forEach(mat => {
+                opcionesMat += `<option value="${mat}">${mat}</option>`;
+            });
+            selectMat.innerHTML = opcionesMat;
+            
+            // Restauramos la selección o la dejamos en "TODAS"
+            if (materiasUnicas.includes(seleccionActualMat)) {
+                selectMat.value = seleccionActualMat;
+            } else {
+                selectMat.value = "TODAS";
+            }
+
+            actualizarFiltroEvaluaciones(selectMat.value);
+        }
+
+        // 2. Actualiza el segundo filtro (Evaluaciones) dependiendo de la Materia seleccionada
+        function actualizarFiltroEvaluaciones(materiaNombreSeleccionada) {
+            const selectObj = document.getElementById("filtro-calif-obj");
+            if (!selectObj) return;
+
+            const seleccionActualObj = selectObj.value;
+            let notasFiltradas = calificaciones;
+
+            if (materiaNombreSeleccionada !== "TODAS") {
+                notasFiltradas = calificaciones.filter(c => c.materiaNombre === materiaNombreSeleccionada);
+            }
+
+            // Extraemos evaluaciones únicas (ID + Nombre) de la data filtrada
+            const evaluacionesUnicas = [];
+            const idsVistos = new Set();
+            
+            notasFiltradas.forEach(c => {
+                if (c.objetivoId && c.objetivoNombre && !idsVistos.has(c.objetivoId)) {
+                    idsVistos.add(c.objetivoId);
+                    evaluacionesUnicas.push({ id: c.objetivoId, nombre: c.objetivoNombre });
+                }
+            });
+
+            let opcionesObj = '<option value="TODOS">Todas las evaluaciones</option>';
+            evaluacionesUnicas.forEach(ev => {
+                opcionesObj += `<option value="${ev.id}">${ev.nombre}</option>`;
+            });
+            selectObj.innerHTML = opcionesObj;
+
+            // Restauramos la selección
+            if (idsVistos.has(seleccionActualObj)) {
+                selectObj.value = seleccionActualObj;
+            } else {
+                selectObj.value = "TODOS";
+            }
+        }
+
+        // 3. Listeners de los menús desplegables
         document.getElementById("filtro-calif-mat").addEventListener("change", (e) => {
-            const matId = e.target.value; const objSel = document.getElementById("filtro-calif-obj");
-            if (matId === "TODAS") { objSel.innerHTML = '<option value="TODOS">Todas las actas</option>' + objetivos.map(o=>`<option value="${o.id}">${o.nombre}</option>`).join(''); } 
-            else { objSel.innerHTML = '<option value="TODOS">Todas las actas de la materia</option>' + objetivos.filter(o=>o.materiaId===matId).map(o=>`<option value="${o.id}">${o.nombre}</option>`).join(''); }
+            actualizarFiltroEvaluaciones(e.target.value);
             renderTablaCalificaciones();
         });
+        
         document.getElementById("filtro-calif-obj").addEventListener("change", renderTablaCalificaciones);
         
+        // 4. El motor de renderizado de la tabla
         function renderTablaCalificaciones() {
-            const matFiltro = document.getElementById("filtro-calif-mat")?.value || "TODAS"; const objFiltro = document.getElementById("filtro-calif-obj")?.value || "TODOS";
+            const matFiltro = document.getElementById("filtro-calif-mat")?.value || "TODAS"; 
+            const objFiltro = document.getElementById("filtro-calif-obj")?.value || "TODOS";
+            
             let filtradas = calificaciones;
-            if (matFiltro !== "TODAS") { const objsDeMateria = objetivos.filter(o => o.materiaId === matFiltro).map(o => o.id); filtradas = filtradas.filter(c => objsDeMateria.includes(c.objetivoId)); }
-            if (objFiltro !== "TODOS") { filtradas = filtradas.filter(c => c.objetivoId === objFiltro); }
+            
+            // Filtro 1: Por Nombre de Materia
+            if (matFiltro !== "TODAS") { 
+                filtradas = filtradas.filter(c => c.materiaNombre === matFiltro); 
+            }
+            
+            // Filtro 2: Por ID de Objetivo
+            if (objFiltro !== "TODOS") { 
+                filtradas = filtradas.filter(c => c.objetivoId === objFiltro); 
+            }
             
             // DEDUPLICACIÓN ESTRICTA DE NOTAS
             let notasUnicas = [];
