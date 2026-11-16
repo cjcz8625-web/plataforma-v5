@@ -376,6 +376,12 @@
                                     <select id="sec-mat-select" class="border border-slate-200 p-2 rounded-lg text-xs w-full outline-none bg-white"><option value="">-- Materia --</option></select>
                                     <input type="text" id="sec-nombre" placeholder="Nombre (Ej. Sección A)" class="border border-slate-200 p-2 rounded-lg text-xs w-full outline-none focus:ring-1 focus:ring-blue-500 bg-white">
                                 </div>
+										<div class="mt-2">
+										<label class="flex items-center space-x-2 text-sm text-slate-600">
+											<input type="checkbox" id="check-seccion-privada" class="accent-blue-600 w-4 h-4">
+											<span>Sección Privada (Oculta en la matrícula de alumnos)</span>
+										</label>
+									</div>
                                 <button id="btn-crear-seccion" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs rounded-lg w-full font-medium shadow-sm transition">Añadir Sección</button>
                             </div>
                         </div>
@@ -950,21 +956,31 @@
                  document.getElementById("perfil-estudiante-iniciales").innerText = `${estudianteSesion.nombre.charAt(0)}${estudianteSesion.apellido.charAt(0)}`.toUpperCase();
             }
             
-            // --- BLOQUEO DE SECCIONES PREVIAS ---
+// --- BLOQUEO DE SECCIONES PREVIAS ---
             const misSecciones = estudianteSesion.seccionesIds || [];
             document.querySelectorAll('.chk-renov-sec').forEach(cb => {
+                // Buscamos el objeto de la sección en el array original para leer sus atributos
+                const secObj = secciones.find(s => s.id === cb.value);
+                const esOculta = secObj ? secObj.esPrivada : false;
+
                 if (misSecciones.includes(cb.value)) {
                     cb.checked = true;
-                    cb.disabled = true; // Impide que el alumno quite la marca
+                    cb.disabled = true; 
+                    cb.parentElement.classList.remove("hidden"); // Si es dueño de la sección privada, la ve
                     cb.parentElement.classList.add("opacity-50", "cursor-not-allowed");
                 } else {
                     cb.checked = false;
                     cb.disabled = false;
                     cb.parentElement.classList.remove("opacity-50", "cursor-not-allowed");
+                    // Ocultamiento elegante basado en el modelo de datos
+                    if (esOculta) {
+                        cb.parentElement.classList.add("hidden");
+                    } else {
+                        cb.parentElement.classList.remove("hidden");
+                    }
                 }
             });
             // ------------------------------------
-            
             if (!estudianteSesion.terminosAceptados) document.getElementById("modal-aceptar-terminos").classList.remove("hidden");
             if (!estudianteSesion.passkeyId && window.PublicKeyCredential) { document.getElementById("box-vincular-huella").classList.remove("hidden"); document.getElementById("box-vincular-huella").classList.add("flex"); } 
             else { document.getElementById("box-vincular-huella").classList.add("hidden"); document.getElementById("box-vincular-huella").classList.remove("flex"); }
@@ -1727,9 +1743,11 @@
         
         function renderSeccionesSelectores() { 
             const contReg = document.getElementById("reg-secciones-container");
-            if (contReg) contReg.innerHTML = secciones.map(s => `<label class="flex items-center space-x-2 py-1"><input type="checkbox" class="chk-reg-sec accent-blue-600 w-4 h-4" value="${s.id}"> <span class="text-slate-700">${s.nombre}</span></label>`).join('');
-            
             const contRen = document.getElementById("renovacion-secciones-container");
+            
+            // Formularios de alumnos nuevos: Filtra directamente usando el atributo esPrivada
+            if (contReg) contReg.innerHTML = secciones.filter(s => !s.esPrivada).map(s => `<label class="flex items-center space-x-2 py-1"><input type="checkbox" class="chk-reg-sec accent-blue-600 w-4 h-4" value="${s.id}"> <span class="text-slate-700">${s.nombre}</span></label>`).join('');
+            
             if (contRen) contRen.innerHTML = secciones.map(s => `<label class="flex items-center space-x-2"><input type="checkbox" class="chk-renov-sec accent-blue-600 w-4 h-4" value="${s.id}"> <span class="text-slate-700">${s.nombre}</span></label>`).join('');
             
             const h = '<option value="TODAS">Todas las dependencias</option>' + secciones.map(s => `<option value="${s.id}">${s.nombre}</option>`).join(''); 
@@ -1946,18 +1964,27 @@
         // --- Creadores de Materia/Sección ---
         document.getElementById("btn-crear-materia").addEventListener("click", async () => { const n = document.getElementById("mat-nombre").value; if(n) { await addDoc(collection(db, "materias"), { nombre: n, codigo: "MAT-"+Date.now() }); alert("Arquitectura curricular modificada: Materia creada."); document.getElementById("mat-nombre").value = ""; } });
         
-        document.getElementById("btn-crear-seccion").addEventListener("click", async () => { 
+		document.getElementById("btn-crear-seccion").addEventListener("click", async () => { 
             const m = document.getElementById("sec-mat-select").value; 
             const n = document.getElementById("sec-nombre").value; 
+            // 1. Capturamos el estado del checkbox al momento de hacer clic
+            const privacidad = document.getElementById("check-seccion-privada").checked;
             
             if(m && n) { 
-                await addDoc(collection(db, "secciones"), { materiaId: m, nombre: n }); 
+                // 2. Enviamos el dato a Firestore
+                await addDoc(collection(db, "secciones"), { 
+                    materiaId: m, 
+                    nombre: n,
+                    esPrivada: privacidad // <--- Propiedad elegante insertada
+                }); 
                 alert(`Dependencia añadida al sistema.`); 
                 document.getElementById("sec-nombre").value = ""; 
+                document.getElementById("check-seccion-privada").checked = false; // Limpia la casilla
             } else {
                 alert("El formulario lógico requiere un nombre y una dependencia padre.");
             }
         });
+        
 
         // --- RENDERIZADO Y CRUD DE MATERIAS Y SECCIONES ---
         function renderTablaMateriasResumen() { 
