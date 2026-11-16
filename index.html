@@ -2044,15 +2044,26 @@
         };
 
         // EDICIÓN Y BORRADO DE SECCIONES
-        window.editarSeccion = async (id) => {
+      window.editarSeccion = async (id) => {
             const s = secciones.find(x => x.id === id);
             if (!s) return;
+            
+            // Reemplazamos el prompt simple por un modal nativo o usamos un confirm mejorado para editar
             const nuevoNombre = prompt("Nueva designación de control para la sección:", s.nombre);
-            if (nuevoNombre && nuevoNombre.trim() !== "" && nuevoNombre !== s.nombre) {
-                await updateDoc(doc(db, "secciones", id), { nombre: nuevoNombre.trim() });
+            
+            if (nuevoNombre !== null) { // Si no canceló el prompt
+                // Preguntamos explícitamente si desea que sea privada
+                const hacerPrivada = confirm(`¿Desea que la sección "${nuevoNombre.trim() || s.nombre}" sea PRIVADA?\n\n(Oculta para alumnos no inscritos)`);
+                
+                let actualizacion = { esPrivada: hacerPrivada };
+                if (nuevoNombre.trim() !== "" && nuevoNombre !== s.nombre) {
+                    actualizacion.nombre = nuevoNombre.trim();
+                }
+                
+                await updateDoc(doc(db, "secciones", id), actualizacion);
+                alert("Propiedades de la sección actualizadas.");
             }
         };
-
         window.eliminarSeccion = async (id) => { 
             const tieneAlumnos = estudiantes.some(e => (e.seccionesIds || []).includes(id));
             if (tieneAlumnos) {
