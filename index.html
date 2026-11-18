@@ -1631,7 +1631,7 @@
 
         document.getElementById("btn-cancelar-edicion-preg").addEventListener("click", resetFormPregunta);
 
-        document.getElementById("btn-agregar-pregunta").addEventListener("click", async () => {
+       document.getElementById("btn-agregar-pregunta").addEventListener("click", async () => {
             const objId = document.getElementById("doc-preg-obj").value; const ob = objetivos.find(x=>x.id===objId);
             const e = document.getElementById("p-enunciado").value; const o0 = document.getElementById("p-opc-0").value; const o1 = document.getElementById("p-opc-1").value; const o2 = document.getElementById("p-opc-2").value; const o3 = document.getElementById("p-opc-3").value;
             const c = parseInt(document.querySelector("input[name='opt_cor']:checked").value); const v = parseFloat(document.getElementById("p-puntos").value);
@@ -1644,17 +1644,25 @@
 
             if (editPregId) {
                 // MODIFICAR EXISTENTE
-                await updateDoc(doc(db, "preguntas", editPregId), { enunciado: e, opciones: [o0, o1, o2, o3], valor: v });
+                // 1. Ciframos y guardamos la clave secreta PRIMERO
                 const hashCorrecta = await cifrarClave(editPregId + "-" + c);
                 clavesDocente[editPregId] = hashCorrecta; 
-                // Actualizamos directamente (sin merge) para limpiar fantasmas
                 await setDoc(doc(db, "claves_examen", objId), {respuestas: clavesDocente});
+                
+                // 2. LUEGO actualizamos el documento de la pregunta (esto dispara la recarga visual)
+                await updateDoc(doc(db, "preguntas", editPregId), { enunciado: e, opciones: [o0, o1, o2, o3], valor: v });
             } else {
                 // CREAR NUEVA
-                const docR = await addDoc(collection(db,"preguntas"), {objetivoId:objId, materiaId:ob.materiaId, enunciado:e, opciones:[o0,o1,o2,o3], valor:v});
-                const hashCorrecta = await cifrarClave(docR.id + "-" + c);
-                clavesDocente[docR.id] = hashCorrecta; 
+                // 1. Generamos el ID único de la pregunta en Firestore ANTES de guardarla
+                const docRef = doc(collection(db, "preguntas")); 
+                
+                // 2. Ciframos y guardamos la clave secreta PRIMERO usando ese nuevo ID
+                const hashCorrecta = await cifrarClave(docRef.id + "-" + c);
+                clavesDocente[docRef.id] = hashCorrecta; 
                 await setDoc(doc(db,"claves_examen",objId), {respuestas:clavesDocente}, {merge:true});
+                
+                // 3. LUEGO guardamos la pregunta (esto dispara la recarga visual de la tabla)
+                await setDoc(docRef, {objetivoId:objId, materiaId:ob.materiaId, enunciado:e, opciones:[o0,o1,o2,o3], valor:v});
             }
             resetFormPregunta();
         });
