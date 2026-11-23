@@ -6,12 +6,73 @@
     <title>Plataforma Universitaria (LMS) - V5.0-Dev</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .no-select { user-select: none; -webkit-user-select: none; }
+		.no-select { user-select: none; -webkit-user-select: none; }
         /* Efecto Mica simulado para modales y barra superior */
         .mica-effect {
             background-color: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Reglas de impresión horizontal exclusiva para la Sábana de Notas */
+        @media print {
+            @page {
+                size: landscape;
+                margin: 10mm;
+            }
+            body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            header,
+            #vista-estudiante-portal,
+            #vista-estudiante-tablero,
+            #vista-examen-activo,
+            #vista-resultados-fin,
+            #vista-sancion-bloqueo,
+            #docente-header-bar,
+            #docente-sidebar,
+            .no-print {
+                display: none !important;
+            }
+            main,
+            #vista-docente-panel,
+            #docente-tabs-wrapper,
+            #docente-content-area,
+            #tc-sabana {
+                display: block !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                overflow: visible !important;
+            }
+            #tabla-sabana-contenedor {
+                overflow: visible !important;
+                border: none !important;
+            }
+            #tabla-sabana-contenedor table {
+                width: 100% !important;
+                font-size: 9px !important;
+                border-collapse: collapse !important;
+            }
+            #tabla-sabana-contenedor th,
+            #tabla-sabana-contenedor td {
+                padding: 4px 5px !important;
+                border: 1px solid #cbd5e1 !important;
+            }
+            #tabla-sabana-contenedor tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            #sabana-print-header {
+                display: block !important;
+            }
         }
     </style>
 </head>
@@ -313,7 +374,7 @@
         <!-- ========================================== -->
         <section id="vista-docente-panel" class="hidden space-y-4">
             <!-- HEADER DOCENTE -->
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div id="docente-header-bar" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -330,10 +391,10 @@
             </div>
 
             <!-- CONTENEDOR PRINCIPAL TABS -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row min-h-[70vh]">
+            <div id="docente-tabs-wrapper" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row min-h-[70vh]">
                 
                 <!-- SIDEBAR NAVEGACIÓN -->
-                <div class="w-full md:w-48 bg-slate-50 border-r border-slate-200 flex flex-row md:flex-col overflow-x-auto md:overflow-visible p-2 gap-1 hide-scrollbar">
+                <div id="docente-sidebar" class="w-full md:w-48 bg-slate-50 border-r border-slate-200 flex flex-row md:flex-col overflow-x-auto md:overflow-visible p-2 gap-1 hide-scrollbar">
                     <button id="tab-btn-asistencia" class="flex-shrink-0 md:w-full text-left px-3 py-2 rounded-lg text-xs font-medium bg-white text-blue-600 shadow-sm border border-slate-200 transition">Asistencia</button>
                     <button id="tab-btn-reanudacion" class="flex-shrink-0 md:w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition">Desbloqueos</button>
                     <button id="tab-btn-materias" class="flex-shrink-0 md:w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition">Materias</button>
@@ -341,11 +402,12 @@
                     <button id="tab-btn-preguntas" class="flex-shrink-0 md:w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition">Banco Pregs</button>
                     <button id="tab-btn-alumnos" class="flex-shrink-0 md:w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition">Padrón</button>
                     <button id="tab-btn-calificaciones" class="flex-shrink-0 md:w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition">Notas</button>
-                    <button id="tab-btn-perfil" class="flex-shrink-0 md:w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition mt-auto">Perfil</button>
+                   <button id="tab-btn-sabana" class="flex-shrink-0 md:w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition">Sábana</button>
+				   <button id="tab-btn-perfil" class="flex-shrink-0 md:w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition mt-auto">Perfil</button>
                 </div>
 
                 <!-- ÁREA DE CONTENIDO -->
-                <div class="flex-grow p-4 md:p-6 overflow-y-auto bg-white relative">
+                <div id="docente-content-area" class="flex-grow p-4 md:p-6 overflow-y-auto bg-white relative">
                     
                     <div id="tc-asistencia" class="space-y-4">
                         <div class="flex flex-col sm:flex-row justify-between pb-2 gap-2">
@@ -499,6 +561,52 @@
                             </div>
                         </div>
                         <div id="tabla-calificaciones-final" class="overflow-x-auto text-xs border border-slate-100 rounded-xl"></div>
+                    </div>
+					
+					<div id="tc-sabana" class="hidden space-y-4">
+                        <!-- Encabezado visible únicamente al imprimir / generar PDF -->
+                        <div id="sabana-print-header" class="hidden border-b-2 border-slate-800 pb-2 mb-3">
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <h2 class="text-base font-bold text-slate-900">Sábana Consolidada de Calificaciones</h2>
+                                    <p class="text-xs text-slate-700" id="sabana-print-meta">Materia: -- • Sección: --</p>
+                                </div>
+                                <div class="text-right text-[11px] text-slate-600">
+                                    <p id="sabana-print-docente">Docente: --</p>
+                                    <p id="sabana-print-fecha">Emisión: --</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Barra de controles y exportación (oculta al imprimir) -->
+                        <div class="no-print flex flex-col lg:flex-row justify-between lg:items-center gap-3 pb-2 border-b border-slate-100">
+                            <div>
+                                <h3 class="text-sm font-semibold text-slate-800">Sábana de Notas Consolidada</h3>
+                                <p class="text-[11px] text-slate-500">Agrupación por cortes, escala dual (100% / 20 pts) y cruce automático con diferidos.</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <select id="filtro-sabana-mat" class="border border-slate-200 p-1.5 rounded-lg text-xs bg-slate-50 outline-none focus:ring-1 focus:ring-blue-500">
+                                    <option value="">-- Materia --</option>
+                                </select>
+                                <select id="filtro-sabana-sec" class="border border-slate-200 p-1.5 rounded-lg text-xs bg-slate-50 outline-none focus:ring-1 focus:ring-blue-500" disabled>
+                                    <option value="">-- Sección --</option>
+                                </select>
+                                <button id="btn-exportar-sabana-csv" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                                    Exportar CSV
+                                </button>
+                                <button id="btn-imprimir-sabana" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                                    Imprimir / PDF
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Banner dinámico de alertas de auditoría (>100%) -->
+                        <div id="sabana-alertas-auditoria" class="hidden bg-red-50 border border-red-200 text-red-800 p-3 rounded-xl text-xs"></div>
+
+                        <!-- Tabla consolidada -->
+                        <div id="tabla-sabana-contenedor" class="overflow-x-auto text-xs border border-slate-200 rounded-xl bg-white">
+                            <div class="p-8 text-center text-slate-400 italic">Seleccione una materia y sección para generar la sábana de notas.</div>
+                        </div>
                     </div>
 
                     <div id="tc-perfil" class="hidden space-y-6 text-xs">
@@ -706,15 +814,16 @@
         onSnapshot(docenteRef, snap => { if (snap.exists()) { docentePerfil = { ...docentePerfil, ...snap.data() }; actualizarInterfazDocente(); } });
         
         onSnapshot(collection(db, "materias"), snap => { materias = []; snap.forEach(d => materias.push({ id: d.id, ...d.data() })); renderMateriasSelectores(); renderTablaMateriasResumen(); });
-        onSnapshot(collection(db, "secciones"), snap => { secciones = []; snap.forEach(d => secciones.push({ id: d.id, ...d.data() })); renderSeccionesSelectores(); renderTablaMateriasResumen(); });
-        onSnapshot(collection(db, "estudiantes"), snap => { estudiantes = []; snap.forEach(d => estudiantes.push({ id: d.id, ...d.data() })); renderTablaAlumnos(); renderTablaAsistencia(); });
-        onSnapshot(collection(db, "objetivos"), snap => { objetivos = []; snap.forEach(d => objetivos.push({ id: d.id, ...d.data() })); renderObjetivosSelectores(); if (estudianteSesion) renderTableroEstudianteLMS(); });
+        onSnapshot(collection(db, "secciones"), snap => { secciones = []; snap.forEach(d => secciones.push({ id: d.id, ...d.data() })); renderSeccionesSelectores(); renderTablaMateriasResumen(); renderSabanaNotas(); });
+        onSnapshot(collection(db, "estudiantes"), snap => { estudiantes = []; snap.forEach(d => estudiantes.push({ id: d.id, ...d.data() })); renderTablaAlumnos(); renderTablaAsistencia(); renderSabanaNotas(); });
+        onSnapshot(collection(db, "objetivos"), snap => { objetivos = []; snap.forEach(d => objetivos.push({ id: d.id, ...d.data() })); renderObjetivosSelectores(); renderSabanaNotas(); if (estudianteSesion) renderTableroEstudianteLMS(); });
         
         onSnapshot(collection(db, "calificaciones"), snap => { 
             calificaciones = []; 
             snap.forEach(d => calificaciones.push({ id: d.id, ...d.data() })); 
             if (typeof actualizarFiltrosLibroCentral === 'function') { actualizarFiltrosLibroCentral(); }
             renderTablaCalificaciones(); 
+            renderSabanaNotas();
             if (estudianteSesion) renderTableroEstudianteLMS(); 
         });
 
@@ -1678,8 +1787,8 @@
             if(document.getElementById("edit-preg-id").value === pId) resetFormPregunta();
         };
 
-        // NAVEGACIÓN
-        const tabsDoc = ["asistencia", "reanudacion", "materias", "evaluaciones", "preguntas", "alumnos", "calificaciones", "perfil"];
+     // NAVEGACIÓN
+        const tabsDoc = ["asistencia", "reanudacion", "materias", "evaluaciones", "preguntas", "alumnos", "calificaciones", "sabana", "perfil"];
         tabsDoc.forEach(t => {
             const btn = document.getElementById(`tab-btn-${t}`);
             if(btn) btn.addEventListener("click", () => {
@@ -1694,6 +1803,10 @@
                 const tBlock = document.getElementById(`tc-${t}`); if(tBlock) tBlock.classList.remove("hidden");
                 btn.classList.remove("border-transparent", "text-slate-600"); 
                 btn.classList.add("bg-white", "text-blue-600", "shadow-sm", "border-slate-200");
+                if (t === "sabana") {
+                    actualizarSelectoresSabana();
+                    renderSabanaNotas();
+                }
             });
         });
 
@@ -1747,8 +1860,13 @@
                 }
             }
         }
-        function renderMateriasSelectores() { const h = '<option value="">-- Seleccionar --</option>' + materias.map(m => `<option value="${m.id}">${m.nombre}</option>`).join(''); const secMat = document.getElementById("sec-mat-select"); if (secMat) secMat.innerHTML = h; const evalMat = document.getElementById("eval-mat-select"); if (evalMat) evalMat.innerHTML = h; const docPreg = document.getElementById("doc-preg-mat"); if (docPreg) docPreg.innerHTML = h; }
-        
+		function renderMateriasSelectores() {
+            const h = '<option value="">-- Seleccionar --</option>' + materias.map(m => `<option value="${m.id}">${m.nombre}</option>`).join('');
+            const secMat = document.getElementById("sec-mat-select"); if (secMat) secMat.innerHTML = h;
+            const evalMat = document.getElementById("eval-mat-select"); if (evalMat) evalMat.innerHTML = h;
+            const docPreg = document.getElementById("doc-preg-mat"); if (docPreg) docPreg.innerHTML = h;
+            actualizarSelectoresSabana();
+        }        
         function renderSeccionesSelectores() { 
             const contReg = document.getElementById("reg-secciones-container");
             const contRen = document.getElementById("renovacion-secciones-container");
@@ -1762,7 +1880,8 @@
             const filAlum = document.getElementById("filtro-alumnos-sec"); if(filAlum) filAlum.innerHTML = h; 
             const filAsis = document.getElementById("filtro-asistencia-seccion"); if(filAsis) filAsis.innerHTML = h; 
             const c = document.getElementById("eval-secciones-checkboxes"); if (c) c.innerHTML = secciones.map(s=>`<label class="border border-slate-200 bg-slate-50 hover:bg-slate-100 p-1.5 text-xs rounded-md cursor-pointer transition flex items-center gap-1.5"><input type="checkbox" name="sec_eval" value="${s.id}" checked class="accent-blue-600"> <span class="font-medium text-slate-700">${s.nombre}</span></label>`).join(''); 
-        }
+			actualizarFiltroSeccionesSabana();
+		}
         
         function renderObjetivosSelectores() {
             const h = `<table class="w-full text-left"><thead class="bg-slate-50"><tr class="border-b border-slate-200"><th class="p-3 font-semibold text-slate-600">Título</th><th class="p-3 font-semibold text-slate-600 text-center">Tipo</th><th class="p-3 font-semibold text-slate-600 text-center">Peso</th><th class="p-3 font-semibold text-slate-600 text-center">Fase</th><th class="p-3 font-semibold text-slate-600 text-center">Controles</th></tr></thead><tbody class="divide-y divide-slate-100">`;
@@ -2082,7 +2201,543 @@
             await deleteDoc(doc(db, "secciones", id)); 
             alert("Operación completada.");
         };
+		// =======================================================
+        // MÓDULO: SÁBANA DE NOTAS CONSOLIDADA (V5.0)
+        // =======================================================
+        let ultimosDatosSabana = null;
 
+        function escaparHtmlSabana(texto) {
+            return String(texto ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function escaparCsvSabana(valor) {
+            const str = String(valor ?? "").replace(/"/g, '""');
+            return `"${str}"`;
+        }
+
+        // Retrocompatibilidad V4 (seccionId) + V5 (seccionesIds)
+        function obtenerSeccionesEstudiante(est) {
+            if (Array.isArray(est.seccionesIds) && est.seccionesIds.length > 0) return est.seccionesIds;
+            if (est.seccionId) return [est.seccionId];
+            return [];
+        }
+
+        function actualizarSelectoresSabana() {
+            const selMat = document.getElementById("filtro-sabana-mat");
+            if (!selMat) return;
+            const prevMat = selMat.value;
+            selMat.innerHTML = '<option value="">-- Materia --</option>' +
+                materias.map(m => `<option value="${m.id}">${escaparHtmlSabana(m.nombre)}</option>`).join('');
+            if (materias.some(m => m.id === prevMat)) selMat.value = prevMat;
+            actualizarFiltroSeccionesSabana();
+        }
+
+        function actualizarFiltroSeccionesSabana() {
+            const selMat = document.getElementById("filtro-sabana-mat");
+            const selSec = document.getElementById("filtro-sabana-sec");
+            if (!selMat || !selSec) return;
+
+            const matId = selMat.value;
+            const prevSec = selSec.value;
+
+            if (!matId) {
+                selSec.innerHTML = '<option value="">-- Sección --</option>';
+                selSec.disabled = true;
+                return;
+            }
+
+            const secsMat = secciones.filter(s => s.materiaId === matId);
+            if (secsMat.length === 0) {
+                selSec.innerHTML = '<option value="">Sin secciones</option>';
+                selSec.disabled = true;
+                return;
+            }
+
+            selSec.innerHTML =
+                '<option value="">-- Sección --</option>' +
+                '<option value="TODAS">Todas las secciones</option>' +
+                secsMat.map(s => `<option value="${s.id}">${escaparHtmlSabana(s.nombre)}${s.esPrivada ? ' 🔒 (Privada)' : ''}</option>`).join('');
+            selSec.disabled = false;
+
+            if (prevSec === "TODAS" || secsMat.some(s => s.id === prevSec)) {
+                selSec.value = prevSec;
+            }
+        }
+
+        function renderSabanaNotas() {
+            const cont = document.getElementById("tabla-sabana-contenedor");
+            const alertaBox = document.getElementById("sabana-alertas-auditoria");
+            const btnCsv = document.getElementById("btn-exportar-sabana-csv");
+            const btnPrint = document.getElementById("btn-imprimir-sabana");
+            const selMat = document.getElementById("filtro-sabana-mat");
+            const selSec = document.getElementById("filtro-sabana-sec");
+            if (!cont || !selMat || !selSec) return;
+
+            const matId = selMat.value;
+            const secId = selSec.value;
+
+            if (!matId || !secId) {
+                ultimosDatosSabana = null;
+                alertaBox.classList.add("hidden");
+                btnCsv.disabled = true;
+                btnPrint.disabled = true;
+                cont.innerHTML = '<div class="p-8 text-center text-slate-400 italic">Seleccione una materia y sección para generar la sábana de notas.</div>';
+                return;
+            }
+
+            const materiaObj = materias.find(m => m.id === matId);
+            if (!materiaObj) return;
+
+            const secsMateria = secciones.filter(s => s.materiaId === matId);
+            const secsMateriaIds = new Set(secsMateria.map(s => s.id));
+            const seccionObj = secId === "TODAS" ? null : secsMateria.find(s => s.id === secId);
+            const nombreSeccionLabel = secId === "TODAS" ? "Todas las secciones" : (seccionObj ? seccionObj.nombre : "Sección");
+
+            // 1. Deduplicación estricta de calificaciones (conserva la última por cédula + objetivoId)
+            const mapaNotas = new Map();
+            for (let i = calificaciones.length - 1; i >= 0; i--) {
+                const c = calificaciones[i];
+                if (!c.cedula || !c.objetivoId) continue;
+                const key = `${normalizarCedula(c.cedula)}_${c.objetivoId}`;
+                if (!mapaNotas.has(key)) mapaNotas.set(key, c);
+            }
+            const notasDedup = Array.from(mapaNotas.values());
+
+            // 2. Filtrar estudiantes de la sección seleccionada (deduplicados y ordenados alfabéticamente)
+            const objetivosDeLaMateria = objetivos.filter(o => o.materiaId === matId);
+            const idsObjMateria = new Set(objetivosDeLaMateria.map(o => o.id));
+
+            const mapaEstudiantes = new Map();
+            estudiantes.forEach(est => {
+                const secsEst = obtenerSeccionesEstudiante(est);
+                const pertenece = secId === "TODAS"
+                    ? secsEst.some(id => secsMateriaIds.has(id))
+                    : secsEst.includes(secId);
+
+                if (!pertenece) return;
+
+                const cedNorm = normalizarCedula(est.cedula);
+                const tieneNotaEnMateria = notasDedup.some(c =>
+                    normalizarCedula(c.cedula) === cedNorm &&
+                    (idsObjMateria.has(c.objetivoId) || c.materiaNombre === materiaObj.nombre)
+                );
+
+                // Incluye aprobados y también quien ya posea notas (por si está en revisión por nueva materia)
+                if (est.aprobado || tieneNotaEnMateria) {
+                    mapaEstudiantes.set(est.id, est);
+                }
+            });
+
+            const listaEstudiantes = Array.from(mapaEstudiantes.values()).sort((a, b) => {
+                const apeCmp = (a.apellido || "").localeCompare(b.apellido || "", "es", { sensitivity: "base" });
+                if (apeCmp !== 0) return apeCmp;
+                return (a.nombre || "").localeCompare(b.nombre || "", "es", { sensitivity: "base" });
+            });
+
+            if (listaEstudiantes.length === 0) {
+                ultimosDatosSabana = null;
+                alertaBox.classList.add("hidden");
+                btnCsv.disabled = true;
+                btnPrint.disabled = true;
+                cont.innerHTML = '<div class="p-8 text-center text-amber-600 font-medium">No hay estudiantes validados en la sección seleccionada.</div>';
+                return;
+            }
+
+            const cedulasGrupo = new Set(listaEstudiantes.map(e => normalizarCedula(e.cedula)));
+
+            // 3. Determinar columnas: evaluaciones regulares de la sección + cruce automático con diferidos/privadas
+            const mapaColumnasObj = new Map();
+
+            // 3a. Objetivos regulares de la materia autorizados para la sección
+            objetivosDeLaMateria.forEach(obj => {
+                const autorizadas = Array.isArray(obj.seccionesAutorizadas) ? obj.seccionesAutorizadas : [];
+                const aplicaRegular = secId === "TODAS"
+                    ? true
+                    : (autorizadas.length === 0 || autorizadas.includes(secId));
+
+                if (aplicaRegular) {
+                    const soloPrivadas = autorizadas.length > 0 && autorizadas.every(id => {
+                        const s = secciones.find(x => x.id === id);
+                        return s && s.esPrivada === true;
+                    });
+                    mapaColumnasObj.set(obj.id, {
+                        id: obj.id,
+                        nombre: obj.nombre,
+                        corte: parseInt(obj.corte) || 1,
+                        ponderacion: parseFloat(obj.ponderacion) || 0,
+                        esDiferido: soloPrivadas
+                    });
+                }
+            });
+
+            // 3b. Cruce con diferidos/privadas (y respaldo histórico): si algún alumno de la sección tiene nota en otro objetivo de la misma materia
+            notasDedup.forEach(c => {
+                const cedNorm = normalizarCedula(c.cedula);
+                if (!cedulasGrupo.has(cedNorm)) return;
+                if (mapaColumnasObj.has(c.objetivoId)) return;
+
+                const objExistente = objetivosDeLaMateria.find(o => o.id === c.objetivoId);
+                if (objExistente) {
+                    mapaColumnasObj.set(objExistente.id, {
+                        id: objExistente.id,
+                        nombre: objExistente.nombre,
+                        corte: parseInt(objExistente.corte) || 1,
+                        ponderacion: parseFloat(objExistente.ponderacion) || parseFloat(c.ponderacionTotal) || 0,
+                        esDiferido: true
+                    });
+                } else if (c.materiaNombre === materiaObj.nombre) {
+                    // Respaldo si el objetivo fue borrado pero la calificación histórica permanece
+                    mapaColumnasObj.set(c.objetivoId, {
+                        id: c.objetivoId,
+                        nombre: c.objetivoNombre || "Eval. Histórica",
+                        corte: 1,
+                        ponderacion: parseFloat(c.ponderacionTotal) || 0,
+                        esDiferido: true
+                    });
+                }
+            });
+
+            // 4. Agrupar dinámicamente por Corte
+            const gruposCorte = new Map();
+            mapaColumnasObj.forEach(col => {
+                if (!gruposCorte.has(col.corte)) gruposCorte.set(col.corte, []);
+                gruposCorte.get(col.corte).push(col);
+            });
+
+            const cortesOrdenados = Array.from(gruposCorte.keys()).sort((a, b) => a - b);
+            cortesOrdenados.forEach(corte => {
+                // Regulares primero, diferidos al final dentro de cada corte
+                gruposCorte.get(corte).sort((a, b) => {
+                    if (a.esDiferido !== b.esDiferido) return a.esDiferido ? 1 : -1;
+                    return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+                });
+            });
+
+            // 5. Calcular filas por estudiante y auditoría >100%
+            const filasCalculadas = [];
+            const alertasLista = [];
+            const sumasColumna = {};
+            const conteoColumna = {};
+
+            listaEstudiantes.forEach((est, idx) => {
+                const cedNorm = normalizarCedula(est.cedula);
+                let totalPct = 0;
+                let pesoEvaluado = 0;
+                const detallePorCorte = {};
+                const celdasObj = {};
+
+                cortesOrdenados.forEach(corte => {
+                    let subPct = 0;
+                    const objsCorte = gruposCorte.get(corte);
+
+                    objsCorte.forEach(col => {
+                        const notaReg = mapaNotas.get(`${cedNorm}_${col.id}`);
+                        if (notaReg) {
+                            const valPct = parseFloat(notaReg.nota) || 0;
+                            const pesoCol = col.ponderacion || parseFloat(notaReg.ponderacionTotal) || 0;
+                            subPct += valPct;
+                            pesoEvaluado += pesoCol;
+                            celdasObj[col.id] = {
+                                tieneNota: true,
+                                notaPct: valPct,
+                                notaPts20: valPct / 5,
+                                sancionado: notaReg.sancionado === true
+                            };
+                            sumasColumna[col.id] = (sumasColumna[col.id] || 0) + valPct;
+                            conteoColumna[col.id] = (conteoColumna[col.id] || 0) + 1;
+                        } else {
+                            celdasObj[col.id] = { tieneNota: false };
+                        }
+                    });
+
+                    detallePorCorte[corte] = {
+                        subPct: subPct,
+                        subPts20: subPct / 5
+                    };
+                    totalPct += subPct;
+                });
+
+                const totalPts20 = totalPct / 5;
+                const excede100 = pesoEvaluado > 100.001;
+                const tieneAlgunaNota = pesoEvaluado > 0;
+                // Nota definitiva redondeada para acta (escala 01–20)
+                // Si tu acta usa redondeo hacia arriba de Gaceta, cambia Math.round(...) por calcularNotaSegunGaceta(totalPct)
+                const definitivaActa = tieneAlgunaNota
+                    ? Math.max(1, Math.min(20, Math.round(totalPts20)))
+                    : null;
+
+                if (excede100) {
+                    alertasLista.push(`${est.apellido} ${est.nombre} (${est.cedula}): ${pesoEvaluado.toFixed(1)}% evaluado`);
+                }
+
+                filasCalculadas.push({
+                    num: idx + 1,
+                    cedula: est.cedula,
+                    nombreCompleto: `${est.apellido}, ${est.nombre}`,
+                    aprobado: est.aprobado === true,
+                    celdasObj,
+                    detallePorCorte,
+                    pesoEvaluado,
+                    totalPct,
+                    totalPts20,
+                    definitivaActa,
+                    excede100
+                });
+            });
+
+            // 6. Actualizar encabezado de impresión y banner de alertas
+            const docNombre = docentePerfil.nombre ? `Prof. ${docentePerfil.nombre} ${docentePerfil.apellido}` : "Docente Titular";
+            document.getElementById("sabana-print-meta").innerText = `Materia: ${materiaObj.nombre} • Sección: ${nombreSeccionLabel} • Estudiantes: ${filasCalculadas.length}`;
+            document.getElementById("sabana-print-docente").innerText = docNombre;
+            document.getElementById("sabana-print-fecha").innerText = `Emisión: ${new Date().toLocaleString()}`;
+
+            if (alertasLista.length > 0) {
+                alertaBox.classList.remove("hidden");
+                alertaBox.innerHTML = `
+                    <div class="font-semibold flex items-center gap-1.5 mb-1">
+                        <span>⚠️ Alerta de Auditoría (${alertasLista.length}): Peso evaluado superior al 100%</span>
+                    </div>
+                    <p class="text-[11px] text-red-700 mb-1">Posible nota repetida o diferida sin eliminar en el <strong>Libro Central (Notas)</strong>:</p>
+                    <div class="text-[11px] font-mono text-red-900">${alertasLista.map(escaparHtmlSabana).join(" • ")}</div>
+                `;
+            } else {
+                alertaBox.classList.add("hidden");
+                alertaBox.innerHTML = "";
+            }
+
+            // 7. Construir tabla HTML con doble cabecera por Cortes
+            let theadRow1 = `
+                <th rowspan="2" class="p-2 text-center font-semibold text-slate-600 border-b border-r border-slate-200 bg-slate-50 w-8">#</th>
+                <th rowspan="2" class="p-2 text-left font-semibold text-slate-600 border-b border-r border-slate-200 bg-slate-50">Cédula</th>
+                <th rowspan="2" class="p-2 text-left font-semibold text-slate-600 border-b border-r border-slate-200 bg-slate-50 min-w-[160px]">Estudiante</th>
+            `;
+            let theadRow2 = "";
+
+            cortesOrdenados.forEach((corte, cIdx) => {
+                const objsCorte = gruposCorte.get(corte);
+                const bgCorte = cIdx % 2 === 0 ? "bg-blue-50/70 text-blue-900" : "bg-indigo-50/70 text-indigo-900";
+                theadRow1 += `<th colspan="${objsCorte.length + 1}" class="p-2 text-center font-bold border-b border-r border-slate-200 ${bgCorte}">Corte ${corte}</th>`;
+
+                objsCorte.forEach(col => {
+                    const badgeDif = col.esDiferido
+                        ? `<span class="block text-[9px] text-amber-700 font-semibold">Dif./Priv.</span>`
+                        : "";
+                    theadRow2 += `
+                        <th class="p-2 text-center font-medium text-slate-700 border-b border-r border-slate-200 bg-slate-50 min-w-[78px]" title="${escaparHtmlSabana(col.nombre)} (${col.ponderacion}%)">
+                            <div class="leading-tight">${escaparHtmlSabana(col.nombre)}</div>
+                            <div class="text-[10px] text-slate-400 font-semibold">${col.ponderacion}%</div>
+                            ${badgeDif}
+                        </th>
+                    `;
+                });
+
+                theadRow2 += `
+                    <th class="p-2 text-center font-bold text-slate-700 border-b border-r border-slate-300 bg-slate-100 min-w-[82px]">
+                        Subt. C${corte}
+                        <span class="block text-[9px] font-normal text-slate-500">% / pts</span>
+                    </th>
+                `;
+            });
+
+            theadRow1 += `
+                <th colspan="4" class="p-2 text-center font-bold text-slate-800 border-b border-slate-200 bg-slate-100">Consolidado Final</th>
+            `;
+            theadRow2 += `
+                <th class="p-2 text-center font-semibold text-slate-600 border-b border-r border-slate-200 bg-slate-50 min-w-[70px]">Peso Eval.</th>
+                <th class="p-2 text-center font-semibold text-slate-700 border-b border-r border-slate-200 bg-slate-50 min-w-[70px]">Acum. %</th>
+                <th class="p-2 text-center font-semibold text-blue-700 border-b border-r border-slate-200 bg-blue-50/40 min-w-[72px]">Escala 20</th>
+                <th class="p-2 text-center font-bold text-slate-900 border-b border-slate-200 bg-slate-100 min-w-[74px]">Def. Acta</th>
+            `;
+
+            // Cuerpo de la tabla
+            let tbodyHtml = "";
+            filasCalculadas.forEach(f => {
+                const rowBg = f.excede100 ? "bg-red-50/70 hover:bg-red-50" : "hover:bg-slate-50";
+                let rowHtml = `<tr class="${rowBg} transition">`;
+                rowHtml += `<td class="p-2 text-center text-slate-400 border-r border-slate-100 font-mono">${f.num}</td>`;
+                rowHtml += `<td class="p-2 font-mono text-slate-600 border-r border-slate-100 whitespace-nowrap">${escaparHtmlSabana(f.cedula)}</td>`;
+                rowHtml += `<td class="p-2 font-medium text-slate-800 border-r border-slate-200 whitespace-nowrap">
+                    ${escaparHtmlSabana(f.nombreCompleto)}
+                    ${!f.aprobado ? '<span class="ml-1 text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded no-print">En rev.</span>' : ''}
+                </td>`;
+
+                cortesOrdenados.forEach(corte => {
+                    const objsCorte = gruposCorte.get(corte);
+                    objsCorte.forEach(col => {
+                        const celda = f.celdasObj[col.id];
+                        if (celda && celda.tieneNota) {
+                            const colorNota = celda.sancionado ? "text-red-600 font-bold" : "text-slate-800 font-medium";
+                            rowHtml += `
+                                <td class="p-2 text-center border-r border-slate-100 ${col.esDiferido ? 'bg-amber-50/40' : ''}" title="${celda.notaPct.toFixed(2)}% (${celda.notaPts20.toFixed(2)} pts)">
+                                    <span class="${colorNota}">${celda.notaPct.toFixed(1)}%</span>
+                                    <span class="block text-[9px] text-slate-400">${celda.notaPts20.toFixed(2)}</span>
+                                </td>
+                            `;
+                        } else {
+                            rowHtml += `<td class="p-2 text-center text-slate-300 border-r border-slate-100">—</td>`;
+                        }
+                    });
+
+                    const sub = f.detallePorCorte[corte];
+                    rowHtml += `
+                        <td class="p-2 text-center border-r border-slate-200 bg-slate-50/80 font-semibold text-slate-700 whitespace-nowrap">
+                            ${sub.subPct.toFixed(1)}%
+                            <span class="block text-[10px] text-blue-600 font-medium">${sub.subPts20.toFixed(2)} pts</span>
+                        </td>
+                    `;
+                });
+
+                const pesoBadge = f.excede100
+                    ? `<span class="inline-block bg-red-100 text-red-700 border border-red-300 px-1.5 py-0.5 rounded font-bold" title="Peso evaluado excede 100%: revise notas repetidas en el Libro Central">⚠️ ${f.pesoEvaluado.toFixed(0)}%</span>`
+                    : `<span class="text-slate-500 font-mono">${f.pesoEvaluado.toFixed(0)}%</span>`;
+
+                const defHtml = f.definitivaActa !== null
+                    ? `<span class="inline-block px-2 py-0.5 rounded-md font-bold ${f.definitivaActa >= 10 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}">${String(f.definitivaActa).padStart(2, '0')}</span>`
+                    : `<span class="text-slate-300">—</span>`;
+
+                rowHtml += `
+                    <td class="p-2 text-center border-r border-slate-100 whitespace-nowrap">${pesoBadge}</td>
+                    <td class="p-2 text-center border-r border-slate-100 font-semibold ${f.excede100 ? 'text-red-700' : 'text-slate-800'} whitespace-nowrap">${f.totalPct.toFixed(1)}%</td>
+                    <td class="p-2 text-center border-r border-slate-100 font-bold text-blue-700 bg-blue-50/30 whitespace-nowrap">${f.totalPts20.toFixed(2)}</td>
+                    <td class="p-2 text-center font-bold bg-slate-50/70 whitespace-nowrap">${defHtml}</td>
+                `;
+                rowHtml += `</tr>`;
+                tbodyHtml += rowHtml;
+            });
+
+            // Pie de tabla con promedios de la sección
+            const promTotalPct = filasCalculadas.reduce((acc, f) => acc + f.totalPct, 0) / filasCalculadas.length;
+            const promTotalPts20 = promTotalPct / 5;
+            const conDef = filasCalculadas.filter(f => f.definitivaActa !== null);
+            const promDef = conDef.length > 0
+                ? (conDef.reduce((acc, f) => acc + f.definitivaActa, 0) / conDef.length).toFixed(1)
+                : "—";
+
+            let tfootHtml = `<tr class="bg-slate-100 font-semibold text-slate-700 border-t-2 border-slate-300">
+                <td colspan="3" class="p-2 text-right border-r border-slate-200">Promedio Sección (${filasCalculadas.length} est.):</td>`;
+
+            cortesOrdenados.forEach(corte => {
+                const objsCorte = gruposCorte.get(corte);
+                objsCorte.forEach(col => {
+                    const cnt = conteoColumna[col.id] || 0;
+                    const promCol = cnt > 0 ? `${(sumasColumna[col.id] / cnt).toFixed(1)}%` : "—";
+                    tfootHtml += `<td class="p-2 text-center text-[10px] border-r border-slate-200">${promCol}</td>`;
+                });
+                const promSubPct = filasCalculadas.reduce((acc, f) => acc + f.detallePorCorte[corte].subPct, 0) / filasCalculadas.length;
+                tfootHtml += `<td class="p-2 text-center text-[10px] border-r border-slate-300">${promSubPct.toFixed(1)}%<span class="block text-blue-700">${(promSubPct / 5).toFixed(2)} pts</span></td>`;
+            });
+
+            tfootHtml += `
+                <td class="p-2 text-center text-[10px] border-r border-slate-200">—</td>
+                <td class="p-2 text-center border-r border-slate-200">${promTotalPct.toFixed(1)}%</td>
+                <td class="p-2 text-center text-blue-700 border-r border-slate-200">${promTotalPts20.toFixed(2)}</td>
+                <td class="p-2 text-center">${promDef}</td>
+            </tr>`;
+
+            cont.innerHTML = `
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr>${theadRow1}</tr>
+                        <tr>${theadRow2}</tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">${tbodyHtml}</tbody>
+                    <tfoot>${tfootHtml}</tfoot>
+                </table>
+            `;
+
+            // Guardar snapshot limpio para exportación CSV
+            ultimosDatosSabana = {
+                materiaNombre: materiaObj.nombre,
+                seccionNombre: nombreSeccionLabel,
+                cortesOrdenados,
+                gruposCorte,
+                filas: filasCalculadas
+            };
+
+            btnCsv.disabled = false;
+            btnPrint.disabled = false;
+        }
+
+        function exportarSabanaCSV() {
+            if (!ultimosDatosSabana || ultimosDatosSabana.filas.length === 0) {
+                return alert("No hay datos cargados en la sábana para exportar.");
+            }
+
+            const { materiaNombre, seccionNombre, cortesOrdenados, gruposCorte, filas } = ultimosDatosSabana;
+            const sep = ";";
+            const encabezados = ["N°", "Cédula", "Estudiante"];
+
+            cortesOrdenados.forEach(corte => {
+                gruposCorte.get(corte).forEach(col => {
+                    const tagDif = col.esDiferido ? " [Dif]" : "";
+                    encabezados.push(`C${corte} - ${col.nombre}${tagDif} (${col.ponderacion}%)`);
+                });
+                encabezados.push(`Subtotal C${corte} (%)`);
+                encabezados.push(`Subtotal C${corte} (20 pts)`);
+            });
+
+            encabezados.push("Peso Evaluado (%)", "Acumulado (%)", "Acumulado (20 pts)", "Definitiva Acta", "Auditoría");
+
+            const lineas = [encabezados.map(escaparCsvSabana).join(sep)];
+
+            filas.forEach(f => {
+                const cols = [f.num, f.cedula, f.nombreCompleto];
+
+                cortesOrdenados.forEach(corte => {
+                    gruposCorte.get(corte).forEach(col => {
+                        const celda = f.celdasObj[col.id];
+                        cols.push(celda && celda.tieneNota ? celda.notaPct.toFixed(2).replace(".", ",") : "");
+                    });
+                    const sub = f.detallePorCorte[corte];
+                    cols.push(sub.subPct.toFixed(2).replace(".", ","));
+                    cols.push(sub.subPts20.toFixed(2).replace(".", ","));
+                });
+
+                cols.push(
+                    f.pesoEvaluado.toFixed(1).replace(".", ","),
+                    f.totalPct.toFixed(2).replace(".", ","),
+                    f.totalPts20.toFixed(2).replace(".", ","),
+                    f.definitivaActa !== null ? String(f.definitivaActa).padStart(2, "0") : "",
+                    f.excede100 ? "ALERTA: Supera 100% (revisar nota repetida)" : "OK"
+                );
+
+                lineas.push(cols.map(escaparCsvSabana).join(sep));
+            });
+
+            // BOM UTF-8 (\uFEFF) para tildes y eñes perfectas en OnlyOffice / Excel
+            const csvContenido = "\uFEFF" + lineas.join("\r\n");
+            const blob = new Blob([csvContenido], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+
+            const limpiarNombre = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_-]+/g, "_");
+            const fechaHoy = new Date().toISOString().slice(0, 10);
+            const enlace = document.createElement("a");
+            enlace.href = url;
+            enlace.download = `Sabana_${limpiarNombre(materiaNombre)}_${limpiarNombre(seccionNombre)}_${fechaHoy}.csv`;
+            document.body.appendChild(enlace);
+            enlace.click();
+            document.body.removeChild(enlace);
+            URL.revokeObjectURL(url);
+        }
+
+        // Eventos del módulo Sábana
+        document.getElementById("filtro-sabana-mat")?.addEventListener("change", () => {
+            actualizarFiltroSeccionesSabana();
+            renderSabanaNotas();
+        });
+        document.getElementById("filtro-sabana-sec")?.addEventListener("change", renderSabanaNotas);
+        document.getElementById("btn-exportar-sabana-csv")?.addEventListener("click", exportarSabanaCSV);
+        document.getElementById("btn-imprimir-sabana")?.addEventListener("click", () => {
+            if (!ultimosDatosSabana) return alert("Seleccione una materia y sección primero.");
+            window.print();
+        });
+
+        // Exposición en window (útil para depuración en type="module")
+        window.renderSabanaNotas = renderSabanaNotas;
     </script>
 </body>
 </html>
