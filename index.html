@@ -1413,12 +1413,25 @@
         }
         document.getElementById("btn-reanudar-tras-advertencia").addEventListener("click", () => { document.getElementById("modal-advertencia").classList.add("hidden"); document.getElementById("modal-advertencia").classList.remove("flex"); solicitarPantallaCompleta(); solicitarWakeLock(); });
 
-        async function ejecutarSancionDefinitiva01(motivo) {
+       async function ejecutarSancionDefinitiva01(motivo) {
             examenEnCurso = false; clearInterval(timerInterval); desactivarListenersSupervision(); liberarWakeLock();
             if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
             const sId = `${estudianteSesion.cedula}_${objetivoActivo.id}`;
+            const matObj = materias.find(m => m.id === objetivoActivo?.materiaId);
+
             await updateDoc(doc(db, "sesiones_examen", sId), { estado: "bloqueado_por_infracciones", strikes: strikeCount }).catch(()=>{});
-            await addDoc(collection(db, "calificaciones"), { fecha: new Date().toLocaleString(), cedula: estudianteSesion.cedula, estudiante: `${estudianteSesion.nombre} ${estudianteSesion.apellido}`, objetivoId: objetivoActivo.id, nota: 1.0, ponderacionTotal: objetivoActivo.ponderacion, sancionado: true, motivoSancion: "Anulado por reincidencia." });
+            await addDoc(collection(db, "calificaciones"), {
+                fecha: new Date().toLocaleString(),
+                cedula: estudianteSesion.cedula,
+                estudiante: `${estudianteSesion.nombre} ${estudianteSesion.apellido}`,
+                materiaNombre: matObj ? matObj.nombre : 'Cátedra',
+                objetivoId: objetivoActivo.id,
+                objetivoNombre: objetivoActivo.nombre,
+                nota: 1.0,
+                ponderacionTotal: objetivoActivo.ponderacion,
+                sancionado: true,
+                motivoSancion: `Anulado por reincidencia: ${motivo}`
+            });
             document.getElementById("modal-advertencia").classList.add("hidden"); document.getElementById("modal-advertencia").classList.remove("flex"); document.getElementById("vista-examen-activo").classList.add("hidden"); document.getElementById("vista-examen-activo").classList.remove("flex"); document.getElementById("vista-sancion-bloqueo").classList.remove("hidden");
             document.getElementById("sancion-detalle-final").innerText = motivo;
         }
