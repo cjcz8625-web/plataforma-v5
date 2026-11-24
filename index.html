@@ -497,27 +497,57 @@
                             <div class="text-right font-bold text-base bg-white px-3 py-1 rounded-lg border shadow-sm" id="txt-puntos-restantes">--</div>
                         </div>
 
-                        <!-- FORMULARIO DE CREACIÓN / EDICIÓN -->
+<!-- FORMULARIO DE CREACIÓN / EDICIÓN (V6: SELECCIÓN + DESARROLLO IA) -->
                         <div id="box-crear-pregunta" class="hidden border border-slate-100 p-5 bg-slate-50 text-xs space-y-4 rounded-xl transition-all relative shadow-sm">
                             <input type="hidden" id="edit-preg-id">
                             <div class="flex justify-between items-center mb-1 border-b border-slate-200 pb-2">
                                 <h4 class="font-bold text-sm text-blue-700" id="titulo-form-preg">Añadir Nueva Pregunta</h4>
                                 <button id="btn-cancelar-edicion-preg" class="hidden text-slate-500 hover:text-red-500 font-bold bg-white px-2 py-1 border rounded-md shadow-sm transition">Cancelar Edición</button>
                             </div>
-                            <textarea id="p-enunciado" class="w-full border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none h-16 transition" placeholder="Redacta la pregunta..."></textarea>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <input type="text" id="p-opc-0" class="border border-slate-200 p-2 rounded-lg bg-white outline-none focus:border-blue-500" placeholder="Opción 1">
-                                <input type="text" id="p-opc-1" class="border border-slate-200 p-2 rounded-lg bg-white outline-none focus:border-blue-500" placeholder="Opción 2">
-                                <input type="text" id="p-opc-2" class="border border-slate-200 p-2 rounded-lg bg-white outline-none focus:border-blue-500" placeholder="Opción 3">
-                                <input type="text" id="p-opc-3" class="border border-slate-200 p-2 rounded-lg bg-white outline-none focus:border-blue-500" placeholder="Opción 4">
+
+                            <!-- Selector de tipo de pregunta -->
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                                <label for="p-tipo" class="font-semibold text-slate-600 shrink-0">Tipo de Ítem:</label>
+                                <select id="p-tipo" class="border border-slate-200 p-1.5 rounded-lg bg-slate-50 outline-none focus:border-blue-500 font-medium text-slate-800 flex-grow">
+                                    <option value="seleccion">☑️ Selección Múltiple (Corrección local SHA-256)</option>
+                                    <option value="desarrollo">🤖 Desarrollo / Texto Abierto (Corrección IA Gemini)</option>
+                                </select>
                             </div>
-                            <div class="font-medium flex flex-wrap items-center gap-4 bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
-                                <span class="text-slate-500 mr-2">Respuesta Correcta:</span>
-                                <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600 transition"><input type="radio" name="opt_cor" value="0" checked class="accent-blue-600 w-4 h-4"> 1</label> 
-                                <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600 transition"><input type="radio" name="opt_cor" value="1" class="accent-blue-600 w-4 h-4"> 2</label> 
-                                <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600 transition"><input type="radio" name="opt_cor" value="2" class="accent-blue-600 w-4 h-4"> 3</label> 
-                                <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600 transition"><input type="radio" name="opt_cor" value="3" class="accent-blue-600 w-4 h-4"> 4</label>
+
+                            <textarea id="p-enunciado" class="w-full border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-y min-h-[72px] transition" placeholder="Redacta la pregunta..."></textarea>
+
+                            <!-- Bloque clásico: Selección múltiple -->
+                            <div id="bloque-campos-seleccion" class="space-y-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <input type="text" id="p-opc-0" class="border border-slate-200 p-2 rounded-lg bg-white outline-none focus:border-blue-500" placeholder="Opción 1">
+                                    <input type="text" id="p-opc-1" class="border border-slate-200 p-2 rounded-lg bg-white outline-none focus:border-blue-500" placeholder="Opción 2">
+                                    <input type="text" id="p-opc-2" class="border border-slate-200 p-2 rounded-lg bg-white outline-none focus:border-blue-500" placeholder="Opción 3">
+                                    <input type="text" id="p-opc-3" class="border border-slate-200 p-2 rounded-lg bg-white outline-none focus:border-blue-500" placeholder="Opción 4">
+                                </div>
+                                <div class="font-medium flex flex-wrap items-center gap-4 bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
+                                    <span class="text-slate-500 mr-2">Respuesta Correcta:</span>
+                                    <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600 transition"><input type="radio" name="opt_cor" value="0" checked class="accent-blue-600 w-4 h-4"> 1</label>
+                                    <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600 transition"><input type="radio" name="opt_cor" value="1" class="accent-blue-600 w-4 h-4"> 2</label>
+                                    <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600 transition"><input type="radio" name="opt_cor" value="2" class="accent-blue-600 w-4 h-4"> 3</label>
+                                    <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600 transition"><input type="radio" name="opt_cor" value="3" class="accent-blue-600 w-4 h-4"> 4</label>
+                                </div>
                             </div>
+
+                            <!-- Bloque nuevo: Desarrollo con Rúbrica oculta en Servidor -->
+                            <div id="bloque-campos-desarrollo" class="hidden space-y-3 bg-indigo-50/50 border border-indigo-200 p-3.5 rounded-xl">
+                                <div class="text-[11px] text-indigo-800 font-medium">
+                                    🔒 La respuesta modelo y los criterios se almacenan en la bóveda privada del servidor y nunca se descargan en el dispositivo del estudiante.
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-700 mb-1">Respuesta Modelo del Docente (Obligatoria)</label>
+                                    <textarea id="p-respuesta-base" class="w-full border border-indigo-200 p-2.5 rounded-lg bg-white outline-none focus:border-indigo-500 resize-y min-h-[90px]" placeholder="Escribe aquí la respuesta ideal esperada o los conceptos clave que debe cubrir el estudiante..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-700 mb-1">Criterios / Rúbrica de Ponderación (Opcional)</label>
+                                    <textarea id="p-criterios" class="w-full border border-indigo-200 p-2.5 rounded-lg bg-white outline-none focus:border-indigo-500 resize-y min-h-[60px]" placeholder="Ej: 40% definición correcta, 40% explicación técnica, 20% ejemplo práctico."></textarea>
+                                </div>
+                            </div>
+
                             <div class="flex flex-col sm:flex-row gap-3 pt-2">
                                 <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden w-full sm:w-auto shadow-sm">
                                     <span class="bg-slate-50 px-3 py-2 text-slate-500 border-r border-slate-200 font-medium">Puntos %</span>
@@ -788,6 +818,93 @@
         let strikeCount = 0; let ultimoIncidenteTimestamp = 0; let wakeLockSentinel = null; let unsubVigilanciaSesion = null;
         let anchoInicial = window.innerWidth; let altoInicial = window.innerHeight;
         let totalPreguntasActivas = 0; let indicePreguntaActual = 0;
+		
+		// =======================================================
+        // CONEXIÓN BACKEND NODE.JS + RELOJ OFICIAL (LMS V6.0)
+        // =======================================================
+         const API_BASE_URL = "https://lms-v6-backend.onrender.com"; // Cambiar por la URL HTTPS de Render/Cloud Run en Bloque D
+        let rubricasDocente = {};
+        let preguntasActivasExamen = [];
+        let desfaseHoraServidorMs = 0;
+        let servidorHoraSincronizada = false;
+
+        function escaparHtmlV6(texto) {
+            return String(texto ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function ahoraOficial() {
+            return Date.now() + desfaseHoraServidorMs;
+        }
+
+        async function sincronizarHoraServidor() {
+            try {
+                const tInicio = Date.now();
+                const resp = await fetch(`${API_BASE_URL}/api/hora`, { cache: "no-store" });
+                if (!resp.ok) return false;
+                const data = await resp.json();
+                const tFin = Date.now();
+                if (typeof data.timestamp === "number") {
+                    const latenciaEstimada = Math.round((tFin - tInicio) / 2);
+                    desfaseHoraServidorMs = (data.timestamp + latenciaEstimada) - tFin;
+                    servidorHoraSincronizada = true;
+                    return true;
+                }
+            } catch (e) {
+                // Si el backend está apagado, degrada limpiamente a hora local V5.0
+            }
+            return false;
+        }
+
+        // Sincronizar hora al abrir la plataforma y cada 5 minutos
+        sincronizarHoraServidor();
+        setInterval(sincronizarHoraServidor, 5 * 60 * 1000);
+
+        async function autenticarDocenteEnBackend(pinPlano) {
+            try {
+                const resp = await fetch(`${API_BASE_URL}/api/docente/auth`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ pin: pinPlano })
+                });
+                const data = await resp.json();
+                if (resp.ok && data.ok && data.token) {
+                    localStorage.setItem("docenteTokenApi", data.token);
+                    return data.token;
+                }
+            } catch (e) {
+                console.warn("Backend no disponible durante login docente.");
+            }
+            return null;
+        }
+
+        async function apiDocenteFetch(ruta, opciones = {}, permitirReintento = true) {
+            let token = localStorage.getItem("docenteTokenApi");
+            if (!token) {
+                const pin = prompt("🔒 Confirma tu PIN docente para conectar con la Bóveda de Rúbricas IA:");
+                if (!pin) throw new Error("Autenticación docente cancelada.");
+                token = await autenticarDocenteEnBackend(pin);
+                if (!token) throw new Error("PIN incorrecto o servidor Node.js apagado.");
+            }
+
+            const resp = await fetch(`${API_BASE_URL}${ruta}`, {
+                ...opciones,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                    ...(opciones.headers || {})
+                }
+            });
+
+            if (resp.status === 401 && permitirReintento) {
+                localStorage.removeItem("docenteTokenApi");
+                return apiDocenteFetch(ruta, opciones, false);
+            }
+            return resp;
+        }
 
         function obtenerIdDispositivo() {
             let deviceId = localStorage.getItem("eval_device_uuid");
@@ -1119,7 +1236,8 @@
             
             if(misMaterias.length === 0) { cont.innerHTML = '<div class="text-center text-slate-500 py-8 bg-white rounded-2xl border border-slate-200">No hay materias asignadas a tus secciones.</div>'; return;}
 
-            let htmlFull = ''; const ahora = Date.now();
+           
+			let htmlFull = ''; const ahora = ahoraOficial();
             const corteGlobalActual = docentePerfil.corteActivo || 1;
             
             misMaterias.forEach(mat => {
@@ -1249,7 +1367,8 @@
         async function reanudarExamenExistente(sesion) {
             objetivoActivo = objetivos.find(o => o.id === sesion.objetivoId); if (!objetivoActivo) return;
             respuestasEstudiante = sesion.respuestas || {}; strikeCount = sesion.strikes || 0;
-            const ahora = Date.now(); tiempoRestanteSegundos = Math.floor((objetivoActivo.horaFin - ahora) / 1000);
+            await sincronizarHoraServidor();
+			const ahora = ahoraOficial(); tiempoRestanteSegundos = Math.floor((objetivoActivo.horaFin - ahora) / 1000);
             if (tiempoRestanteSegundos <= 0) { alert("Tiempo finalizado. Se entregará automático."); autoEntregarPorTiempoAgotado(); return; }
             const q = query(collection(db, "preguntas"), where("objetivoId", "==", objetivoActivo.id));
             const snaps = await getDocs(q); const pregs = []; snaps.forEach(d => pregs.push({ id: d.id, ...d.data() }));
@@ -1280,8 +1399,9 @@
                 document.getElementById("sancion-detalle-final").innerText = "VIOLACIÓN CRÍTICA: Intento de vulnerar el sistema manipulando datos locales. Evaluación reprobada."; return;
             }
 
-            objetivoActivo = objetivos.find(o => o.id === objId); respuestasEstudiante = {}; strikeCount = 0;
-            const ahora = Date.now(); tiempoRestanteSegundos = Math.floor((objetivoActivo.horaFin - ahora) / 1000);
+            await sincronizarHoraServidor();
+			objetivoActivo = objetivos.find(o => o.id === objId); respuestasEstudiante = {}; strikeCount = 0;
+			const ahora = ahoraOficial(); tiempoRestanteSegundos = Math.floor((objetivoActivo.horaFin - ahora) / 1000);
             if (tiempoRestanteSegundos <= 0) { alert("El periodo para esta evaluación ha finalizado."); return; }
             
             const q = query(collection(db, "preguntas"), where("objetivoId", "==", objId));
@@ -1332,7 +1452,19 @@
             else { btnSig.classList.remove("hidden"); btnEntregar.classList.add("hidden"); }
         }
 
+        const timersAutoguardadoTexto = {};
+        window.guardarRespuestaTextoDebounced = function(pregId, texto) {
+            respuestasEstudiante[pregId] = texto;
+            const contador = document.getElementById(`contador-chars-${pregId}`);
+            if (contador) contador.innerText = `${texto.length} caracteres`;
+            clearTimeout(timersAutoguardadoTexto[pregId]);
+            timersAutoguardadoTexto[pregId] = setTimeout(() => {
+                window.guardarRespuestaAutoguardado(pregId, texto);
+            }, 900);
+        };
+
         function ejecutarPantallaExamen(pregs, esReanudacion) {
+            preguntasActivasExamen = pregs;
             examenEnCurso = true; solicitarWakeLock(); solicitarPantallaCompleta();
             document.getElementById("vista-estudiante-tablero").classList.add("hidden"); document.getElementById("vista-examen-activo").classList.remove("hidden");
             document.getElementById("vista-examen-activo").classList.add("flex");
@@ -1341,18 +1473,46 @@
             totalPreguntasActivas = pregs.length; indicePreguntaActual = 0;
             const cont = document.getElementById("contenedor-preguntas-examen"); let h = '';
             pregs.forEach((p, idx) => {
-                const valG = respuestasEstudiante[p.id]; const displayClass = idx === 0 ? "block" : "hidden";
+                const valG = respuestasEstudiante[p.id];
+                const displayClass = idx === 0 ? "block" : "hidden";
+                const tipoPreg = p.tipo || "seleccion";
+
                 h += `<div id="preg-card-${idx}" class="pregunta-card ${displayClass} bg-white p-5 sm:p-6 border border-slate-200 rounded-xl shadow-sm space-y-4">
-                        <p class="font-medium text-sm sm:text-base text-slate-800 leading-relaxed">${idx+1}. ${p.enunciado} <span class="text-slate-400 font-normal text-xs ml-1">(${p.valor}%)</span></p>
-                        <div class="space-y-2 text-sm mt-4">`;
-                p.opciones.forEach((opc, oi) => {
-                    const chk = (valG !== undefined && parseInt(valG) === oi) ? 'checked' : '';
-                    h += `<label class="flex items-start sm:items-center p-3 bg-slate-50 border border-slate-100 rounded-lg cursor-pointer hover:bg-slate-100 hover:border-slate-200 transition group">
-                            <input type="radio" name="preg_${p.id}" value="${oi}" onchange="window.guardarRespuestaAutoguardado('${p.id}', ${oi})" ${chk} class="mt-0.5 sm:mt-0 mr-3 accent-blue-600 w-4 h-4">
-                            <span class="text-slate-700 group-hover:text-slate-900">${opc}</span>
-                          </label>`;
-                });
-                h += `</div></div>`;
+                        <div class="flex items-start justify-between gap-2">
+                            <p class="font-medium text-sm sm:text-base text-slate-800 leading-relaxed">${idx+1}. ${escaparHtmlV6(p.enunciado)} <span class="text-slate-400 font-normal text-xs ml-1">(${p.valor}%)</span></p>
+                            ${tipoPreg === 'desarrollo' ? '<span class="shrink-0 text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full">Desarrollo</span>' : ''}
+                        </div>`;
+
+                if (tipoPreg === "desarrollo") {
+                    const textoGuardado = typeof valG === "string" ? valG : "";
+                    h += `<div class="space-y-2 mt-3">
+                            <textarea
+                                id="resp-texto-${p.id}"
+                                rows="6"
+                                oninput="window.guardarRespuestaTextoDebounced('${p.id}', this.value)"
+                                onblur="window.guardarRespuestaAutoguardado('${p.id}', this.value)"
+                                onpaste="return false"
+                                placeholder="Desarrolla tu respuesta aquí de forma clara y precisa..."
+                                class="w-full border border-slate-200 rounded-xl p-3.5 text-sm text-slate-800 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none resize-y select-text transition"
+                                style="user-select: text; -webkit-user-select: text;"
+                            >${escaparHtmlV6(textoGuardado)}</textarea>
+                            <div class="flex justify-between items-center text-[11px] text-slate-400">
+                                <span>Autoguardado automático activo • Pegado deshabilitado</span>
+                                <span id="contador-chars-${p.id}">${textoGuardado.length} caracteres</span>
+                            </div>
+                          </div>`;
+                } else {
+                    h += `<div class="space-y-2 text-sm mt-4">`;
+                    (p.opciones || []).forEach((opc, oi) => {
+                        const chk = (valG !== undefined && parseInt(valG) === oi) ? 'checked' : '';
+                        h += `<label class="flex items-start sm:items-center p-3 bg-slate-50 border border-slate-100 rounded-lg cursor-pointer hover:bg-slate-100 hover:border-slate-200 transition group">
+                                <input type="radio" name="preg_${p.id}" value="${oi}" onchange="window.guardarRespuestaAutoguardado('${p.id}', ${oi})" ${chk} class="mt-0.5 sm:mt-0 mr-3 accent-blue-600 w-4 h-4">
+                                <span class="text-slate-700 group-hover:text-slate-900">${escaparHtmlV6(opc)}</span>
+                              </label>`;
+                    });
+                    h += `</div>`;
+                }
+                h += `</div>`;
             });
             cont.innerHTML = h; updateControlesPaginacion();
 
@@ -1439,15 +1599,69 @@
         document.getElementById("btn-entregar-examen-final").addEventListener("click", () => procesarEntregaFinalCiega(false));
         function autoEntregarPorTiempoAgotado() { procesarEntregaFinalCiega(true); }
 
-        // MEJORA 4: CALIFICACIÓN A CIEGAS CON CLIENT-SIDE HASHING
+// MEJORA V6: ENTREGA HÍBRIDA (SELECCIÓN LOCAL SHA-256 / DESARROLLO EN SERVIDOR CON GEMINI)
         async function procesarEntregaFinalCiega(esPorTiempo) {
             examenEnCurso = false; clearInterval(timerInterval); desactivarListenersSupervision(); liberarWakeLock();
             if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
             const sesionId = `${estudianteSesion.cedula}_${objetivoActivo.id}`; const matObj = materias.find(m => m.id === objetivoActivo.materiaId);
-            
+
+            // Capturar cualquier texto pendiente en pantalla antes de ocultar la vista
+            preguntasActivasExamen.forEach(p => {
+                if ((p.tipo || "seleccion") === "desarrollo") {
+                    const ta = document.getElementById(`resp-texto-${p.id}`);
+                    if (ta) respuestasEstudiante[p.id] = ta.value;
+                }
+            });
+
+            const tieneDesarrollo = preguntasActivasExamen.some(p => (p.tipo || "seleccion") === "desarrollo");
+
             document.getElementById("vista-examen-activo").classList.add("hidden"); document.getElementById("vista-examen-activo").classList.remove("flex"); document.getElementById("vista-resultados-fin").classList.remove("hidden");
-            document.getElementById("res-nota-valor").innerHTML = `<span class="animate-pulse text-2xl text-blue-600">Procesando...</span>`;
-            
+            document.getElementById("res-nota-valor").innerHTML = tieneDesarrollo
+                ? `<span class="animate-pulse text-lg text-indigo-600">Evaluando desarrollo con IA...</span>`
+                : `<span class="animate-pulse text-2xl text-blue-600">Procesando...</span>`;
+
+            // RUTA A: Examen con preguntas de desarrollo (o mixto) -> Evaluación en Servidor Node.js + Gemini
+            if (tieneDesarrollo) {
+                try {
+                    // Respaldo previo en Firestore por si la red cae justo antes del POST
+                    await updateDoc(doc(db, "sesiones_examen", sesionId), { respuestas: respuestasEstudiante }).catch(()=>{});
+
+                    const resp = await fetch(`${API_BASE_URL}/api/evaluar-examen`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            cedula: estudianteSesion.cedula,
+                            objetivoId: objetivoActivo.id,
+                            respuestas: respuestasEstudiante,
+                            esPorTiempo
+                        })
+                    });
+
+                    const data = await resp.json();
+                    if (!resp.ok && !data.yaCalificado) {
+                        throw new Error(data.error || "No se pudo completar la evaluación en el servidor.");
+                    }
+
+                    document.getElementById("res-nota-valor").innerText = `${Number(data.notaFinal).toFixed(2)} %`;
+                    if (data.reporteHtml) {
+                        window.reporteHtmlActual = data.reporteHtml;
+                        document.getElementById("btn-ver-reporte-final-container").classList.remove("hidden");
+                    }
+                    return;
+                } catch (error) {
+                    console.error("Error evaluando en servidor IA:", error);
+                    document.getElementById("res-nota-valor").innerHTML = `<span class="text-sm text-amber-700 font-semibold">Respuestas guardadas. Pendiente de corrección por el docente.</span>`;
+                    await updateDoc(doc(db, "sesiones_examen", sesionId), {
+                        respuestas: respuestasEstudiante,
+                        estado: "entregado",
+                        entregaAutomatica: esPorTiempo,
+                        fechaEntrega: new Date().toISOString()
+                    }).catch(()=>{});
+                    return;
+                }
+            }
+
+            // RUTA B: Examen 100% selección múltiple -> Motor clásico V5.0 intacto
             try {
                 const snapClave = await getDoc(doc(db, "claves_examen", objetivoActivo.id));
                 const claves = snapClave.exists() ? (snapClave.data().respuestas || {}) : {};
@@ -1456,7 +1670,6 @@
                 
                 let totalNota = 0; let aprobadas = []; let reprobadas = [];
                 
-                // Iteración asíncrona para validar hashes
                 for (let i = 0; i < snapshotPregs.docs.length; i++) {
                     const docP = snapshotPregs.docs[i];
                     const pData = docP.data(); 
@@ -1466,7 +1679,6 @@
                     let acierto = false;
                     if (seleccion !== undefined && correctaHash !== undefined) {
                         const seleccionHash = await cifrarClave(docP.id + "-" + seleccion);
-                        // Verifica con el Hash Criptográfico, o como fallback con número directo para exámenes viejos de la versión anterior
                         if (seleccionHash === correctaHash || parseInt(seleccion) === parseInt(correctaHash)) {
                             acierto = true;
                         }
@@ -1474,9 +1686,9 @@
 
                     if (acierto) { 
                         totalNota += parseFloat(pData.valor || 0); 
-                        aprobadas.push(`<li class="text-sm py-1 border-b border-slate-100 last:border-0"><span class="text-emerald-500 mr-2">✓</span> ${pData.enunciado} <span class="font-medium text-emerald-600 text-xs ml-1">(+${pData.valor}%)</span></li>`); 
+                        aprobadas.push(`<li class="text-sm py-1 border-b border-slate-100 last:border-0"><span class="text-emerald-500 mr-2">✓</span> ${escaparHtmlV6(pData.enunciado)} <span class="font-medium text-emerald-600 text-xs ml-1">(+${pData.valor}%)</span></li>`); 
                     } else { 
-                        reprobadas.push(`<li class="text-sm py-1 border-b border-slate-100 last:border-0"><span class="text-red-400 mr-2">✗</span> ${pData.enunciado} <span class="font-medium text-red-500 text-xs ml-1">(${seleccion===undefined?'Sin responder':'Incorrecta'})</span></li>`); 
+                        reprobadas.push(`<li class="text-sm py-1 border-b border-slate-100 last:border-0"><span class="text-red-400 mr-2">✗</span> ${escaparHtmlV6(pData.enunciado)} <span class="font-medium text-red-500 text-xs ml-1">(${seleccion===undefined?'Sin responder':'Incorrecta'})</span></li>`); 
                     }
                 }
 
@@ -1639,7 +1851,22 @@
             document.getElementById("btn-guardar-notas-manuales").innerText = "Firmar Acta";
         });
 
-        // PREGUNTAS Y ESCUDO CRIPTOGRÁFICO
+       // PREGUNTAS, ESCUDO CRIPTOGRÁFICO Y RÚBRICAS IA (V6)
+        function toggleCamposTipoPregunta() {
+            const tipo = document.getElementById("p-tipo")?.value || "seleccion";
+            const boxSel = document.getElementById("bloque-campos-seleccion");
+            const boxDev = document.getElementById("bloque-campos-desarrollo");
+            if (!boxSel || !boxDev) return;
+            if (tipo === "desarrollo") {
+                boxSel.classList.add("hidden");
+                boxDev.classList.remove("hidden");
+            } else {
+                boxSel.classList.remove("hidden");
+                boxDev.classList.add("hidden");
+            }
+        }
+        document.getElementById("p-tipo")?.addEventListener("change", toggleCamposTipoPregunta);
+
         document.getElementById("doc-preg-mat").addEventListener("change", (e) => {
             const id = e.target.value; const s = document.getElementById("doc-preg-obj"); document.getElementById("box-crear-pregunta").classList.add("hidden"); document.getElementById("resumen-puntos-preguntas").classList.add("hidden");
             s.disabled = !id; s.innerHTML = '<option value="">-- Selecciona un Examen --</option>' + objetivos.filter(x=>x.materiaId===id && x.tipo==='online').map(x=>`<option value="${x.id}">${x.nombre}</option>`).join('');
@@ -1649,7 +1876,23 @@
             const id = e.target.value; if(!id) { document.getElementById("box-crear-pregunta").classList.add("hidden"); document.getElementById("resumen-puntos-preguntas").classList.add("hidden"); return; }
             document.getElementById("box-crear-pregunta").classList.remove("hidden");
             if(unsubPreguntas) unsubPreguntas();
-            const sC = await getDoc(doc(db, "claves_examen", id)); clavesDocente = sC.exists() ? sC.data().respuestas : {};
+
+            const sC = await getDoc(doc(db, "claves_examen", id));
+            clavesDocente = sC.exists() ? (sC.data().respuestas || {}) : {};
+            rubricasDocente = {};
+
+            // Cargar rúbricas privadas si hay token docente y el servidor responde
+            try {
+                if (localStorage.getItem("docenteTokenApi")) {
+                    const rRub = await apiDocenteFetch(`/api/docente/rubricas/${id}`, { method: "GET" }, false);
+                    if (rRub.ok) {
+                        const dRub = await rRub.json();
+                        rubricasDocente = dRub.rubricas || {};
+                    }
+                }
+            } catch (err) {
+                console.warn("Rúbricas IA no cargadas en esta vista:", err.message);
+            }
             
             unsubPreguntas = onSnapshot(query(collection(db, "preguntas"), where("objetivoId", "==", id)), async snap => { 
                 preguntas = []; snap.forEach(d => preguntas.push({id: d.id, ...d.data()})); 
@@ -1667,26 +1910,46 @@
             for (let i = 0; i < preguntas.length; i++) {
                 const p = preguntas[i];
                 totalPuntosActuales += parseFloat(p.valor || 0);
-                
+                const tipoPreg = p.tipo || "seleccion";
+
+                if (tipoPreg === "desarrollo") {
+                    const rub = rubricasDocente[p.id];
+                    const estadoRubrica = rub && rub.respuestaBase
+                        ? `<div class="text-[11px] text-indigo-700 bg-indigo-50 inline-block px-2 py-1 rounded-md border border-indigo-200 font-medium shadow-sm">🤖 Desarrollo (IA) • Rúbrica en Bóveda: "${escaparHtmlV6(rub.respuestaBase.slice(0, 75))}${rub.respuestaBase.length > 75 ? '...' : ''}"</div>`
+                        : `<div class="text-[11px] text-amber-700 bg-amber-50 inline-block px-2 py-1 rounded-md border border-amber-200 font-medium shadow-sm">🤖 Desarrollo (IA) • Conecta el servidor o edita para ver/actualizar la rúbrica</div>`;
+
+                    h += `<div class="border border-indigo-200 p-4 bg-white rounded-xl shadow-sm flex flex-col sm:flex-row justify-between sm:items-start gap-4 hover:border-indigo-400 transition">
+                            <div class="space-y-2 flex-grow">
+                                <div class="font-medium text-slate-800 text-sm leading-tight">${i+1}. ${escaparHtmlV6(p.enunciado)} <span class="text-indigo-600 font-bold ml-1">${p.valor}%</span></div>
+                                ${estadoRubrica}
+                            </div>
+                            <div class="flex gap-2 justify-end">
+                                <button onclick="window.cargarPreguntaParaEdicion('${p.id}', 0)" class="text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 px-3 py-1.5 rounded-lg border border-blue-200 transition font-medium text-xs shadow-sm">Editar</button>
+                                <button onclick="window.eliminarPregunta('${p.id}','${objId}')" class="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 px-3 py-1.5 rounded-lg border border-red-200 transition font-medium text-xs shadow-sm">Borrar</button>
+                            </div>
+                          </div>`;
+                    continue;
+                }
+
+                // Renderizado clásico V5.0 (Selección múltiple)
                 let correctaIndex = '--';
                 let correctaVal = 0;
                 
                 if (clavesDocente[p.id] !== undefined) {
-                    if (!isNaN(clavesDocente[p.id]) && p.opciones[clavesDocente[p.id]]) {
+                    if (!isNaN(clavesDocente[p.id]) && p.opciones && p.opciones[clavesDocente[p.id]]) {
                         correctaIndex = p.opciones[clavesDocente[p.id]]; correctaVal = clavesDocente[p.id];
                     } else {
-                        // Búsqueda por Hash Inverso
                         for (let oi = 0; oi < 4; oi++) {
                             const testHash = await cifrarClave(p.id + "-" + oi);
-                            if (testHash === clavesDocente[p.id]) { correctaIndex = p.opciones[oi]; correctaVal = oi; break; }
+                            if (testHash === clavesDocente[p.id]) { correctaIndex = (p.opciones || [])[oi]; correctaVal = oi; break; }
                         }
                     }
                 }
                 
                 h += `<div class="border border-slate-200 p-4 bg-white rounded-xl shadow-sm flex flex-col sm:flex-row justify-between sm:items-start gap-4 hover:border-blue-300 transition">
                         <div class="space-y-2 flex-grow">
-                            <div class="font-medium text-slate-800 text-sm leading-tight">${i+1}. ${p.enunciado} <span class="text-blue-600 font-bold ml-1">${p.valor}%</span></div>
-                            <div class="text-[11px] text-emerald-700 bg-emerald-50 inline-block px-2 py-1 rounded-md border border-emerald-100 font-medium shadow-sm">✓ Bóveda Cifrada: Opción ${correctaVal + 1} (${correctaIndex})</div>
+                            <div class="font-medium text-slate-800 text-sm leading-tight">${i+1}. ${escaparHtmlV6(p.enunciado)} <span class="text-blue-600 font-bold ml-1">${p.valor}%</span></div>
+                            <div class="text-[11px] text-emerald-700 bg-emerald-50 inline-block px-2 py-1 rounded-md border border-emerald-100 font-medium shadow-sm">✓ Bóveda Cifrada: Opción ${correctaVal + 1} (${escaparHtmlV6(correctaIndex)})</div>
                         </div>
                         <div class="flex gap-2 justify-end">
                             <button onclick="window.cargarPreguntaParaEdicion('${p.id}', ${correctaVal})" class="text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 px-3 py-1.5 rounded-lg border border-blue-200 transition font-medium text-xs shadow-sm">Editar</button>
@@ -1719,16 +1982,38 @@
         }
 
         // FUNCIONALIDAD DE EDICIÓN Y BORRADO
-        window.cargarPreguntaParaEdicion = (pId, correctaVal) => {
+        window.cargarPreguntaParaEdicion = async (pId, correctaVal) => {
             const p = preguntas.find(x => x.id === pId); if (!p) return;
+            const tipo = p.tipo || "seleccion";
+
             document.getElementById("edit-preg-id").value = p.id;
+            document.getElementById("p-tipo").value = tipo;
+            toggleCamposTipoPregunta();
             document.getElementById("p-enunciado").value = p.enunciado;
-            document.getElementById("p-opc-0").value = p.opciones[0]; document.getElementById("p-opc-1").value = p.opciones[1];
-            document.getElementById("p-opc-2").value = p.opciones[2]; document.getElementById("p-opc-3").value = p.opciones[3];
             document.getElementById("p-puntos").value = p.valor;
-            
-            const radios = document.querySelectorAll("input[name='opt_cor']");
-            radios.forEach(r => { if(parseInt(r.value) === correctaVal) r.checked = true; });
+
+            if (tipo === "desarrollo") {
+                const objId = document.getElementById("doc-preg-obj").value;
+                if (!rubricasDocente[p.id]) {
+                    try {
+                        const rRub = await apiDocenteFetch(`/api/docente/rubricas/${objId}`, { method: "GET" });
+                        if (rRub.ok) {
+                            const dRub = await rRub.json();
+                            rubricasDocente = dRub.rubricas || {};
+                        }
+                    } catch (e) {}
+                }
+                const rub = rubricasDocente[p.id] || {};
+                document.getElementById("p-respuesta-base").value = rub.respuestaBase || "";
+                document.getElementById("p-criterios").value = rub.criterios || "";
+            } else {
+                document.getElementById("p-opc-0").value = (p.opciones || [])[0] || "";
+                document.getElementById("p-opc-1").value = (p.opciones || [])[1] || "";
+                document.getElementById("p-opc-2").value = (p.opciones || [])[2] || "";
+                document.getElementById("p-opc-3").value = (p.opciones || [])[3] || "";
+                const radios = document.querySelectorAll("input[name='opt_cor']");
+                radios.forEach(r => { if(parseInt(r.value) === correctaVal) r.checked = true; });
+            }
 
             // Activar UI de Edición
             document.getElementById("titulo-form-preg").innerText = "Modificando Pregunta"; document.getElementById("titulo-form-preg").classList.replace("text-blue-700", "text-amber-700");
@@ -1740,9 +2025,13 @@
         };
 
         function resetFormPregunta() {
-            document.getElementById("edit-preg-id").value = ""; document.getElementById("p-enunciado").value = "";
+            document.getElementById("edit-preg-id").value = "";
+            document.getElementById("p-tipo").value = "seleccion";
+            toggleCamposTipoPregunta();
+            document.getElementById("p-enunciado").value = "";
             document.getElementById("p-opc-0").value = ""; document.getElementById("p-opc-1").value = "";
             document.getElementById("p-opc-2").value = ""; document.getElementById("p-opc-3").value = "";
+            document.getElementById("p-respuesta-base").value = ""; document.getElementById("p-criterios").value = "";
             document.getElementById("p-puntos").value = ""; document.querySelector("input[name='opt_cor'][value='0']").checked = true;
             
             document.getElementById("titulo-form-preg").innerText = "Añadir Nueva Pregunta"; document.getElementById("titulo-form-preg").classList.replace("text-amber-700", "text-blue-700");
@@ -1753,50 +2042,88 @@
 
         document.getElementById("btn-cancelar-edicion-preg").addEventListener("click", resetFormPregunta);
 
-       document.getElementById("btn-agregar-pregunta").addEventListener("click", async () => {
+        document.getElementById("btn-agregar-pregunta").addEventListener("click", async () => {
             const objId = document.getElementById("doc-preg-obj").value; const ob = objetivos.find(x=>x.id===objId);
-            const e = document.getElementById("p-enunciado").value; const o0 = document.getElementById("p-opc-0").value; const o1 = document.getElementById("p-opc-1").value; const o2 = document.getElementById("p-opc-2").value; const o3 = document.getElementById("p-opc-3").value;
-            const c = parseInt(document.querySelector("input[name='opt_cor']:checked").value); const v = parseFloat(document.getElementById("p-puntos").value);
-            
-            if(!e||!o0||!o1||!o2||!o3||!v) return alert("Faltan datos para procesar la pregunta.");
-            
+            const tipo = document.getElementById("p-tipo").value;
+            const e = document.getElementById("p-enunciado").value.trim();
+            const v = parseFloat(document.getElementById("p-puntos").value);
             const editPregId = document.getElementById("edit-preg-id").value;
+            const btnGuardar = document.getElementById("btn-agregar-pregunta");
 
-            document.getElementById("btn-agregar-pregunta").innerText = "Sincronizando...";
+            if (!e || !v) return alert("El enunciado y los puntos % son obligatorios.");
+
+            if (tipo === "desarrollo") {
+                const respuestaBase = document.getElementById("p-respuesta-base").value.trim();
+                const criterios = document.getElementById("p-criterios").value.trim();
+                if (!respuestaBase) return alert("Para preguntas de desarrollo debes redactar la Respuesta Modelo del docente.");
+
+                btnGuardar.innerText = "Guardando en Bóveda IA...";
+                try {
+                    const docRef = editPregId ? doc(db, "preguntas", editPregId) : doc(collection(db, "preguntas"));
+                    const pregId = docRef.id;
+
+                    // 1. Guardar rúbrica oculta PRIMERO en el servidor (evita condición de carrera)
+                    const resp = await apiDocenteFetch(`/api/docente/rubricas/${objId}`, {
+                        method: "POST",
+                        body: JSON.stringify({ preguntaId: pregId, respuestaBase, criterios })
+                    });
+                    const dResp = await resp.json();
+                    if (!resp.ok || !dResp.ok) throw new Error(dResp.error || "No se pudo guardar la rúbrica en el servidor.");
+
+                    rubricasDocente[pregId] = { respuestaBase, criterios };
+
+                    // 2. Guardar o actualizar la pregunta en Firestore (sin exponer la rúbrica)
+                    if (editPregId) {
+                        await updateDoc(docRef, { tipo: "desarrollo", enunciado: e, valor: v, opciones: [] });
+                    } else {
+                        await setDoc(docRef, { objetivoId: objId, materiaId: ob.materiaId, tipo: "desarrollo", enunciado: e, valor: v, opciones: [] });
+                    }
+                    resetFormPregunta();
+                } catch (err) {
+                    alert(`⚠️ Error guardando pregunta de desarrollo: ${err.message}\n\nVerifica que node server.js esté encendido.`);
+                    btnGuardar.innerText = editPregId ? "Guardar Modificación" : "Agregar al Banco";
+                }
+                return;
+            }
+
+            // Flujo clásico V5.0: Selección múltiple (preserva arreglo de condición de carrera)
+            const o0 = document.getElementById("p-opc-0").value; const o1 = document.getElementById("p-opc-1").value; const o2 = document.getElementById("p-opc-2").value; const o3 = document.getElementById("p-opc-3").value;
+            const c = parseInt(document.querySelector("input[name='opt_cor']:checked").value);
+            if(!o0||!o1||!o2||!o3) return alert("Completa las 4 opciones para la pregunta de selección múltiple.");
+
+            btnGuardar.innerText = "Sincronizando...";
 
             if (editPregId) {
-                // MODIFICAR EXISTENTE
-                // 1. Ciframos y guardamos la clave secreta PRIMERO
                 const hashCorrecta = await cifrarClave(editPregId + "-" + c);
                 clavesDocente[editPregId] = hashCorrecta; 
-                await setDoc(doc(db, "claves_examen", objId), {respuestas: clavesDocente});
-                
-                // 2. LUEGO actualizamos el documento de la pregunta (esto dispara la recarga visual)
-                await updateDoc(doc(db, "preguntas", editPregId), { enunciado: e, opciones: [o0, o1, o2, o3], valor: v });
+                await setDoc(doc(db, "claves_examen", objId), {respuestas: clavesDocente}, {merge: true});
+                await updateDoc(doc(db, "preguntas", editPregId), { tipo: "seleccion", enunciado: e, opciones: [o0, o1, o2, o3], valor: v });
             } else {
-                // CREAR NUEVA
-                // 1. Generamos el ID único de la pregunta en Firestore ANTES de guardarla
                 const docRef = doc(collection(db, "preguntas")); 
-                
-                // 2. Ciframos y guardamos la clave secreta PRIMERO usando ese nuevo ID
                 const hashCorrecta = await cifrarClave(docRef.id + "-" + c);
                 clavesDocente[docRef.id] = hashCorrecta; 
                 await setDoc(doc(db,"claves_examen",objId), {respuestas:clavesDocente}, {merge:true});
-                
-                // 3. LUEGO guardamos la pregunta (esto dispara la recarga visual de la tabla)
-                await setDoc(docRef, {objetivoId:objId, materiaId:ob.materiaId, enunciado:e, opciones:[o0,o1,o2,o3], valor:v});
+                await setDoc(docRef, {objetivoId:objId, materiaId:ob.materiaId, tipo: "seleccion", enunciado:e, opciones:[o0,o1,o2,o3], valor:v});
             }
             resetFormPregunta();
         });
 
         window.eliminarPregunta = async (pId, oId) => { 
-            if(!confirm("⚠️ ¿Borrar definitivamente esta pregunta del banco?")) return; 
+            if(!confirm("⚠️ ¿Borrar definitivamente esta pregunta del banco?")) return;
+            const pregObj = preguntas.find(x => x.id === pId);
             await deleteDoc(doc(db,"preguntas",pId)); 
-            delete clavesDocente[pId]; 
-            // Eliminamos la clave del documento reemplazándolo (sin merge)
-            await updateDoc(doc(db,"claves_examen",oId), { respuestas: clavesDocente }).catch(async () => {
-                 await setDoc(doc(db,"claves_examen",oId), { respuestas: clavesDocente }); // Fallback si no existiera
-            }); 
+
+            if (pregObj && pregObj.tipo === "desarrollo") {
+                delete rubricasDocente[pId];
+                try {
+                    await apiDocenteFetch(`/api/docente/rubricas/${oId}/${pId}`, { method: "DELETE" }, false);
+                } catch (e) { console.warn("No se pudo purgar rúbrica en backend:", e.message); }
+            } else {
+                delete clavesDocente[pId]; 
+                await updateDoc(doc(db,"claves_examen",oId), { respuestas: clavesDocente }).catch(async () => {
+                     await setDoc(doc(db,"claves_examen",oId), { respuestas: clavesDocente });
+                });
+            }
             if(document.getElementById("edit-preg-id").value === pId) resetFormPregunta();
         };
 
@@ -1828,12 +2155,14 @@
             const p = document.getElementById("login-docente-pin").value;
             if (await cifrarClave(p) === docentePerfil.pinHash) {
                 localStorage.setItem("docenteSesionLocal", "true");
+                // Emite token para gestionar rúbricas IA (no bloquea el login si el backend local está apagado)
+                await autenticarDocenteEnBackend(p);
                 document.getElementById("modal-login-docente").classList.add("hidden"); document.getElementById("modal-login-docente").classList.remove("flex"); document.getElementById("vista-estudiante-portal").classList.add("hidden"); document.getElementById("vista-docente-panel").classList.remove("hidden");
                 const tabC = document.getElementById("tc-asistencia"); if(tabC) tabC.classList.remove("hidden");
             } else { alert("Credencial administrativa inválida."); }
         });
         document.getElementById("btn-volver-estudiante-desde-docente").addEventListener("click", () => { document.getElementById("vista-docente-panel").classList.add("hidden"); if (estudianteSesion) document.getElementById("vista-estudiante-tablero").classList.remove("hidden"); else document.getElementById("vista-estudiante-portal").classList.remove("hidden"); });
-        document.getElementById("btn-salir-docente").addEventListener("click", () => { localStorage.removeItem("docenteSesionLocal"); document.getElementById("vista-docente-panel").classList.add("hidden"); document.getElementById("vista-estudiante-portal").classList.remove("hidden"); });
+        document.getElementById("btn-salir-docente").addEventListener("click", () => { localStorage.removeItem("docenteSesionLocal"); localStorage.removeItem("docenteTokenApi"); document.getElementById("vista-docente-panel").classList.add("hidden"); document.getElementById("vista-estudiante-portal").classList.remove("hidden"); });
         
         document.getElementById("btn-guardar-perfil").addEventListener("click", async () => { const ced = document.getElementById("doc-cedula-input").value; const nom = document.getElementById("doc-nombre-input").value; const ape = document.getElementById("doc-apellido-input").value; await updateDoc(doc(db, "configuracion", "docente"), { cedula: ced, nombre: nom, apellido: ape }); alert("Identidad del docente actualizada."); });
         document.getElementById("btn-actualizar-pin").addEventListener("click", async () => {
